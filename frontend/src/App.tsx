@@ -1,18 +1,16 @@
-import {useState} from 'react';
-import {Button} from '@/components/ui/button';
 import './App.css';
+import {LoginForm} from "@/components/login-form.tsx";
 
 function App() {
-    const [count, setCount] = useState(0);
 
-    return (
+  return (
+    <div className="flex max-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+      <div className="w-full max-w-sm md:max-w-3xl">
+        <LoginForm/>
+      </div>
+    </div>
 
-        <section id="center">
-            <p>Count is {count}</p>
-            <Button onClick={() => setCount((count) => count + 1)}>shadcn/ui Button</Button>
-        </section>
-
-    );
+  );
 }
 
 export default App;
