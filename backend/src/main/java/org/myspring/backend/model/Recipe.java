@@ -17,13 +17,20 @@ public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false)
     private String title;
-    private String ingredients;
+    @Column(columnDefinition = "TEXT")
     private String steps;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     @Column(name = "updated_at")
-    private LocalDateTime updateddAt;
+    private LocalDateTime updatedAt;
+    @OneToMany(
+            mappedBy = "recipe",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<Ingredient> ingredients = new HashSet<>();
     @ManyToMany(mappedBy = "favoriteRecipes")
     private Set<User> favoritedByUsers = new HashSet<>();
 }
