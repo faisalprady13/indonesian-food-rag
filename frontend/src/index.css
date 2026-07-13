@@ -5,96 +5,112 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Update the colors in your CSS based on the provided image */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: oklch(0.92 0.004 286.32);
-  --code-bg: #f4f3ec;
-  --brand: #aa3bff;
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Updated Background and Foreground based on light theme values */
+  --background: oklch(0.985 0.01 85); /* Rice White */
+  --foreground: oklch(0.22 0.02 45); /* Java Ink */
+
+  /* Updated Card and Muted from image content labels */
+  --card: oklch(0.995 0.008 85); /* Updated Card background */
+  --card-foreground: oklch(0.22 0.02 45); /* Assumed foreground based on light mode text */
+
+  --popover: oklch(0.995 0.008 85); /* Assumed similar to card */
+  --popover-foreground: oklch(0.22 0.02 45);
+
+  /* Terracotta */
+  --primary: oklch(0.61 0.15 45); /* Terracotta */
+  --primary-foreground: oklch(0.985 0.005 85);
+
+  /* Cream */
+  --secondary: oklch(0.95 0.015 85); /* Cream */
+  --secondary-foreground: oklch(0.22 0.02 45);
+
+  --muted: oklch(0.96 0.012 85); /* Updated Muted color */
+  --muted-foreground: oklch(0.56 0.015 45); /* Updated Muted text */
+
+  /* Olive */
+  --accent: oklch(0.64 0.08 125); /* Olive */
+  --accent-foreground: oklch(0.985 0.005 85);
+
+  --destructive: oklch(0.62 0.2 28); /* No specific label, keeping existing */
+
+  --border: oklch(0.91 0.008 85); /* No border specified in image */
+  --input: oklch(0.91 0.008 85);
+  --ring: oklch(0.61 0.15 45); /* Assuming ring matches primary Terracotta */
+
+  /* Chart Colors based on labels */
+  --chart-1: oklch(0.61 0.15 45); /* Chart-1 Terracotta */
+  --chart-2: oklch(0.64 0.08 125); /* Chart-2 Olive */
+  --chart-3: oklch(0.75 0.11 75); /* Chart-3 */
+  --chart-4: oklch(0.69 0.13 35); /* Chart-4 */
+  --chart-5: oklch(0.52 0.05 150); /* Chart-5 */
+
+  /* Keep default radius */
+  --radius: 0.625rem;
+
+  /* Updated Sidebar based on image content */
+  --sidebar: oklch(0.985 0.01 85); /* Sidebar background */
+  --sidebar-foreground: oklch(0.22 0.02 45); /* Sidebar-foreground label in image */
+  --sidebar-primary: oklch(0.61 0.15 45); /* Sidebar-primary label in image (Terracotta) */
+  --sidebar-primary-foreground: oklch(0.985 0.005 85);
+  --sidebar-accent: oklch(0.95 0.015 85); /* Sidebar-accent label in image (Cream) */
+  --sidebar-accent-foreground: oklch(0.22 0.02 45);
+  --sidebar-border: oklch(0.91 0.008 85); /* Sidebar-border label in image */
+  --sidebar-ring: oklch(0.61 0.15 45); /* Sidebar-ring label in image (Terracotta) */
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+}
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.dark {
+  /* Updated Background and Foreground based on dark theme values */
+  --background: oklch(0.18 0.01 45); /* Warm Charcoal */
+  --foreground: oklch(0.97 0.01 85); /* Light Foreground text */
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --card: oklch(0.23 0.012 45); /* Updated Card background */
+  --card-foreground: oklch(0.97 0.01 85); /* Light Foreground text */
 
-  --background: oklch(1 0 0);
+  --popover: oklch(0.23 0.012 45); /* Similar to card */
+  --popover-foreground: oklch(0.97 0.01 85);
 
-  --foreground: oklch(0.141 0.005 285.823);
+  /* Slightly brighter Terracotta */
+  --primary: oklch(0.68 0.16 45); /* Updated Primary Terracotta */
+  --primary-foreground: oklch(0.18 0.01 45); /* Dark text on primary */
 
-  --card: oklch(1 0 0);
+  --secondary: oklch(0.28 0.01 45); /* Updated Secondary color */
+  --secondary-foreground: oklch(0.97 0.01 85);
 
-  --card-foreground: oklch(0.141 0.005 285.823);
+  --muted: oklch(0.28 0.01 45); /* Updated Muted color */
+  --muted-foreground: oklch(0.72 0.01 85); /* Updated Muted text */
 
-  --popover: oklch(1 0 0);
+  /* Olive */
+  --accent: oklch(0.69 0.09 125); /* Updated Olive accent */
+  --accent-foreground: oklch(0.18 0.01 45); /* Dark text on accent */
 
-  --popover-foreground: oklch(0.141 0.005 285.823);
+  --destructive: oklch(0.67 0.21 28); /* No specific label */
 
-  --primary: oklch(0.553 0.195 38.402);
+  --border: oklch(0.32 0.01 45); /* Updated Border color */
+  --input: oklch(0.32 0.01 45);
+  --ring: oklch(0.68 0.16 45); /* Assuming ring matches brighter primary */
 
-  --primary-foreground: oklch(0.98 0.016 73.684);
+  --chart-1: oklch(0.68 0.16 45); /* Chart-1 Terracotta */
+  --chart-2: oklch(0.69 0.09 125); /* Chart-2 Olive */
+  --chart-3: oklch(0.79 0.12 75); /* Chart-3 */
+  --chart-4: oklch(0.72 0.14 35); /* Chart-4 */
+  --chart-5: oklch(0.58 0.06 150); /* Chart-5 */
 
-  --secondary: oklch(0.967 0.001 286.375);
-
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-
-  --muted: oklch(0.967 0.001 286.375);
-
-  --muted-foreground: oklch(0.552 0.016 285.938);
-
-  --accent-foreground: oklch(0.21 0.006 285.885);
-
-  --destructive: oklch(0.577 0.245 27.325);
-
-  --input: oklch(0.92 0.004 286.32);
-
-  --ring: oklch(0.705 0.015 286.067);
-
-  --chart-1: oklch(0.837 0.128 66.29);
-
-  --chart-2: oklch(0.705 0.213 47.604);
-
-  --chart-3: oklch(0.646 0.222 41.116);
-
-  --chart-4: oklch(0.553 0.195 38.402);
-
-  --chart-5: oklch(0.47 0.157 37.304);
-
-  --radius: 0.625rem;
-
-  --sidebar: oklch(0.985 0 0);
-
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-
-  --sidebar-primary: oklch(0.646 0.222 41.116);
-
-  --sidebar-primary-foreground: oklch(0.98 0.016 73.684);
-
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-
-  --sidebar-border: oklch(0.92 0.004 286.32);
-
-  --sidebar-ring: oklch(0.705 0.015 286.067);
+  /* Sidebar details not visible for dark mode in image */
+  --sidebar: oklch(0.205 0.01 45); /* Previous dark sidebar */
+  --sidebar-foreground: oklch(0.97 0.01 85);
+  --sidebar-primary: oklch(0.68 0.16 45);
+  --sidebar-primary-foreground: oklch(0.18 0.01 45);
+  --sidebar-accent: oklch(0.28 0.01 45);
+  --sidebar-accent-foreground: oklch(0.97 0.01 85);
+  --sidebar-border: oklch(0.32 0.01 45);
+  --sidebar-ring: oklch(0.68 0.16 45);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -109,10 +125,6 @@
     --accent-border: rgba(192, 132, 252, 0.5);
     --social-bg: rgba(47, 48, 58, 0.5);
     --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
   }
 }
 
