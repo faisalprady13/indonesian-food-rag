@@ -1,0 +1,49 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: indodish-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_DB_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+#  backend:
+#    build: ./backend
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      POSTGRES_DB_URI: ${POSTGRES_DB_URI}/${POSTGRES_DB}
+#      POSTGRES_DB_USER: ${POSTGRES_DB_USER}
+#      POSTGRES_DB_PASSWD: ${POSTGRES_DB_PASSWD}
+#    depends_on:
+#      - postgres
+
+#  frontend:
+#    build: ./frontend
+#    ports:
+#      - "80:80"
+#    environment:
+#      BACKEND_URL: http://backend:8080
+#    depends_on:
+#      - backend
+
+#  pgadmin:
+#    image: dpage/pgadmin4
+#    container_name: shopping-pgadmin
+#    restart: unless-stopped
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+#      PGADMIN_DEFAULT_PASSWORD: admin
+#    ports:
+#      - "5050:80"
+#    depends_on:
+#      - postgres
+
+volumes:
+  postgres_data:
