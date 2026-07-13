@@ -38,7 +38,7 @@ jobs:
     needs: app
     environment:
       name: Live Server
-      url: ${{ secrets.DEPLOYMENT_URL }}
+      url: ${{ vars.DEPLOYMENT_URL }}
     steps:
       - name: Trigger server deployment
         run: |
