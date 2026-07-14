@@ -13,11 +13,13 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
+    private String role;
     private String email;
     private String password;
     @Column(name = "image_url")
@@ -25,7 +27,7 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     @Column(name = "updated_at")
-    private LocalDateTime updateddAt;
+    private LocalDateTime updatedAt;
 
     @ManyToMany
     @JoinTable(
