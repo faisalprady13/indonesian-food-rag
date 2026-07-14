@@ -22,7 +22,10 @@ public class User {
 
     private String username;
     private String role;
+
+    @Column(unique = true, nullable = false)
     private String email;
+
     private String password;
     private String provider;
 
