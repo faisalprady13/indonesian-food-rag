@@ -40,9 +40,9 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/user/register", "/api/user/login", "/oauth2/**", "/login/**", "/register").permitAll()
-                        .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico", "/static/**").permitAll().
-                        anyRequest().authenticated()
+                        .requestMatchers("/api/user/login", "/api/user/register", "/oauth2/**").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
