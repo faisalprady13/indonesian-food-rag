@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { Recipe, Page, RecipeSuggestion, GetRecipesParams } from '../types/Recipe.ts';
 
 export interface CurrentUser {
   username: string;
@@ -57,4 +58,19 @@ export async function getMe(): Promise<CurrentUser> {
 
 export function logout(): void {
   clearToken();
+}
+
+export async function getRecipes(params: GetRecipesParams = {}): Promise<Page<Recipe>> {
+  const { data } = await http.get<Page<Recipe>>('/api/recipe', { params });
+  return data;
+}
+
+export async function autocompleteRecipes(query: string, limit = 8): Promise<RecipeSuggestion[]> {
+  if (!query.trim()) {
+    return [];
+  }
+  const { data } = await http.get<RecipeSuggestion[]>('/api/recipe/autocomplete', {
+    params: { query, limit },
+  });
+  return data;
 }
