@@ -1,17 +1,29 @@
-import {Button} from '@/components/ui/button.tsx';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card.tsx';
-import {Field, FieldDescription, FieldError, FieldGroup, FieldLabel} from '@/components/ui/field.tsx';
-import {Input} from '@/components/ui/input.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card.tsx';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field.tsx';
+import { Input } from '@/components/ui/input.tsx';
 import Logo from '@/assets/logo.webp';
-import {Link, useNavigate} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as React from 'react';
-import {login, register, type CurrentUser} from '@/lib/api.ts';
+import { login, register, type CurrentUser } from '@/lib/api.ts';
 
 type SignupFormProps = React.ComponentProps<typeof Card> & {
   onLoginSuccess: () => Promise<CurrentUser>;
 };
 
-export function SignupForm({onLoginSuccess, ...props}: SignupFormProps) {
+export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
   const navigate = useNavigate();
   const [username, setUsername] = React.useState('');
   const [email, setEmail] = React.useState('');
@@ -31,7 +43,7 @@ export function SignupForm({onLoginSuccess, ...props}: SignupFormProps) {
 
     setSubmitting(true);
     try {
-      await register({username, email, password});
+      await register({ username, email, password });
       await login(username, password);
       await onLoginSuccess();
       navigate('/');
@@ -45,7 +57,7 @@ export function SignupForm({onLoginSuccess, ...props}: SignupFormProps) {
   return (
     <Card {...props}>
       <CardHeader>
-        <img src={Logo} alt="Logo" className="mx-auto mb-2 h-12 w-auto"/>
+        <img src={Logo} alt="Logo" className="mx-auto mb-2 h-12 w-auto" />
         <CardTitle>Create an account</CardTitle>
         <CardDescription>Enter your information below to create your account</CardDescription>
       </CardHeader>

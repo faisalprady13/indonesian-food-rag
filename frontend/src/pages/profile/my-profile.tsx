@@ -1,19 +1,19 @@
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar.tsx';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card.tsx';
-import {Separator} from '@/components/ui/separator.tsx';
-import type {CurrentUser} from '@/lib/api.ts';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
+import { Separator } from '@/components/ui/separator.tsx';
+import type { CurrentUser } from '@/lib/api.ts';
 
 type MyProfileProps = {
   user: CurrentUser;
 };
 
-export default function MyProfile({user}: Readonly<MyProfileProps>) {
+export default function MyProfile({ user }: Readonly<MyProfileProps>) {
   return (
     <div className="mx-auto w-full max-w-md">
       <Card>
         <CardHeader className="items-center text-center">
           <Avatar className="mx-auto mb-2 size-16">
-            <AvatarImage src={user.imageUrl ?? undefined} alt={user.username}/>
+            <AvatarImage src={user.imageUrl ?? undefined} alt={user.username} />
             <AvatarFallback className="text-lg">
               {user.username.charAt(0).toUpperCase()}
             </AvatarFallback>
@@ -21,7 +21,7 @@ export default function MyProfile({user}: Readonly<MyProfileProps>) {
           <CardTitle>{user.username}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <Separator/>
+          <Separator />
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Email</span>
             <span className="font-medium">{user.email}</span>

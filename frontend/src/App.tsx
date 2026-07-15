@@ -1,13 +1,13 @@
 import './App.css';
-import {Navigate, Route, Routes} from 'react-router-dom';
-import {LoginForm} from '@/pages/auth/login-form.tsx';
-import {SignupForm} from '@/pages/auth/signup-form.tsx';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { LoginForm } from '@/pages/auth/login-form.tsx';
+import { SignupForm } from '@/pages/auth/signup-form.tsx';
 import MyProfile from '@/pages/profile/my-profile.tsx';
 import Home from '@/pages/Home.tsx';
 import AppLayout from '@/layout/AppLayout.tsx';
-import {useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 import ProtectedRoute from './components/protectedRoute/ProtectedRoute.tsx';
-import {getMe, setToken, logout, type CurrentUser} from '@/lib/api';
+import { getMe, setToken, logout, type CurrentUser } from '@/lib/api';
 
 function App() {
   const [user, setUser] = useState<CurrentUser | undefined | null>(undefined);
@@ -42,7 +42,7 @@ function App() {
         element={
           <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm">
-              <LoginForm onLoginSuccess={refreshUser}/>
+              <LoginForm onLoginSuccess={refreshUser} />
             </div>
           </div>
         }
@@ -52,18 +52,18 @@ function App() {
         element={
           <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm">
-              <SignupForm onLoginSuccess={refreshUser}/>
+              <SignupForm onLoginSuccess={refreshUser} />
             </div>
           </div>
         }
       />
-      <Route element={<ProtectedRoute user={user}/>}>
-        <Route element={<AppLayout user={user!} onLogout={handleLogout}/>}>
-          <Route index element={<Home user={user!}/>}/>
-          <Route path="/profile" element={<MyProfile user={user!}/>}/>
+      <Route element={<ProtectedRoute user={user} />}>
+        <Route element={<AppLayout user={user!} onLogout={handleLogout} />}>
+          <Route index element={<Home user={user!} />} />
+          <Route path="/profile" element={<MyProfile user={user!} />} />
         </Route>
       </Route>
-      <Route path="*" element={<Navigate to="/"/>}/>
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

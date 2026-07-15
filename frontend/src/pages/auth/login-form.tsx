@@ -1,18 +1,30 @@
-import {cn} from '@/lib/utils.ts';
-import {Button} from '@/components/ui/button.tsx';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card.tsx';
-import {Field, FieldDescription, FieldError, FieldGroup, FieldLabel} from '@/components/ui/field.tsx';
-import {Input} from '@/components/ui/input.tsx';
+import { cn } from '@/lib/utils.ts';
+import { Button } from '@/components/ui/button.tsx';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card.tsx';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field.tsx';
+import { Input } from '@/components/ui/input.tsx';
 import Logo from '@/assets/logo.webp';
 import * as React from 'react';
-import {Link, useNavigate} from 'react-router-dom';
-import {login, type CurrentUser} from '@/lib/api.ts';
+import { Link, useNavigate } from 'react-router-dom';
+import { login, type CurrentUser } from '@/lib/api.ts';
 
 type LoginFormProps = React.ComponentProps<'div'> & {
   onLoginSuccess: () => Promise<CurrentUser>;
 };
 
-export function LoginForm({className, onLoginSuccess, ...props}: LoginFormProps) {
+export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProps) {
   const navigate = useNavigate();
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -20,13 +32,10 @@ export function LoginForm({className, onLoginSuccess, ...props}: LoginFormProps)
   const [submitting, setSubmitting] = React.useState(false);
 
   function loginWithGithub() {
-    const host = window.location.host === "localhost:5173" ?
-      "http://localhost:8080"
-      :
-      window.location.origin
+    const host =
+      window.location.host === 'localhost:5173' ? 'http://localhost:8080' : window.location.origin;
 
-
-    window.open(host + '/oauth2/authorization/github', '_self')
+    window.open(host + '/oauth2/authorization/github', '_self');
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -48,7 +57,7 @@ export function LoginForm({className, onLoginSuccess, ...props}: LoginFormProps)
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <img src={Logo} alt="Logo" className="mx-auto mb-2 h-12 w-auto"/>
+          <img src={Logo} alt="Logo" className="mx-auto mb-2 h-12 w-auto" />
           <CardTitle>Login to your account</CardTitle>
           <CardDescription>Enter your username below to login to your account</CardDescription>
         </CardHeader>
