@@ -1,13 +1,23 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import Logo from '@/assets/logo.webp';
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { login, type CurrentUser } from '@/lib/api';
 
-export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
+type LoginFormProps = React.ComponentProps<'div'> & {
+  onLoginSuccess: () => Promise<CurrentUser>;
+};
+
+export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProps) {
+  const navigate = useNavigate();
+  const [username, setUsername] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [error, setError] = React.useState<string | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
 
   function loginWithGithub() {
     const host = window.location.host === "localhost:5173" ?
@@ -19,29 +29,60 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     window.open(host + '/oauth2/authorization/github', '_self')
   }
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await login(username, password);
+      await onLoginSuccess();
+      navigate('/');
+    } catch {
+      setError('Invalid username or password');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
           <img src={Logo} alt="Logo" className="mx-auto mb-2 h-12 w-auto" />
           <CardTitle>Login to your account</CardTitle>
-          <CardDescription>Enter your email below to login to your account</CardDescription>
+          <CardDescription>Enter your username below to login to your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input id="email" type="email" placeholder="m@example.com" required />
+                <FieldLabel htmlFor="username">Username</FieldLabel>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="johndoe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
               </Field>
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                {error && <FieldError>{error}</FieldError>}
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? 'Logging in...' : 'Login'}
+                </Button>
                 <Button variant="outline" type="button" onClick={loginWithGithub}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path
