@@ -54,8 +54,8 @@ export default function Navbar({ user, onLogout }: Readonly<NavbarProps>) {
               <HugeiconsIcon icon={UserIcon} size={16} />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onLogout}>
-              <HugeiconsIcon icon={LogoutIcon} size={16} />
+            <DropdownMenuItem onClick={onLogout} className="text-red-500">
+              <HugeiconsIcon icon={LogoutIcon} size={16} className="text-red-500" />
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
