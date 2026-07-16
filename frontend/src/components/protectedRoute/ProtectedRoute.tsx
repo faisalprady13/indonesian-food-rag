@@ -1,4 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import AppSkeleton from '@/layout/AppSkeleton.tsx';
 import type { CurrentUser } from '@/lib/api.ts';
 
 type ProtectedRouteProps = {
@@ -7,7 +8,7 @@ type ProtectedRouteProps = {
 
 export default function ProtectedRoute(props: Readonly<ProtectedRouteProps>) {
   if (props.user === undefined) {
-    return <h1>loading...</h1>;
+    return <AppSkeleton />;
   }
 
   return <>{props.user ? <Outlet /> : <Navigate to="/login" />}</>;
