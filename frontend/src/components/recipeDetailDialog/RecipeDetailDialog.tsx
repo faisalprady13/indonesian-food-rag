@@ -36,7 +36,7 @@ export default function RecipeDetailDialog({
           <div className="flex flex-col gap-4">
             <div>
               <h3 className="mb-1.5 text-sm font-medium">Ingredients</h3>
-              {recipe?.ingredients.length ? (
+              {recipe?.ingredients?.length ? (
                 <ul className="list-inside list-disc text-sm text-muted-foreground">
                   {recipe.ingredients.map((ingredient, index) => (
                     <li key={index}>{ingredient}</li>
