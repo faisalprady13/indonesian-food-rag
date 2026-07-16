@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 interface AppState {
-  user: CurrentUser | null;
+  user: CurrentUser | null | undefined;
   setUser: (value: CurrentUser | null) => void;
   removeUser: () => void;
   updateUser: (value: Partial<CurrentUser>) => void;
@@ -11,11 +11,14 @@ interface AppState {
 
 export const useAppStore = create<AppState>()(
   immer((set) => ({
-    user: null,
-    setUser: (newUser) => set({ user: newUser }),
+    user: undefined,
+    setUser: (newUser) => {
+      set({ user: newUser });
+    },
     removeUser: () => set({ user: null }),
     updateUser: (data: Partial<CurrentUser>) =>
       set((state) => {
+        if (!state.user) return;
         Object.assign(state.user, data);
       }),
   })),

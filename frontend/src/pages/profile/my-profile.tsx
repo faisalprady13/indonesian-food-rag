@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.t
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator.tsx';
 import type { CurrentUser } from '@/lib/api.ts';
-import { Check, Pen, Save } from 'lucide-react';
+import { useAppStore } from '@/store/appStore';
+import { Check, Pen } from 'lucide-react';
 import { useState } from 'react';
 
 type MyProfileProps = {
@@ -14,6 +15,14 @@ type MyProfileProps = {
 export default function MyProfile({ user }: Readonly<MyProfileProps>) {
   const [editable, setEditable] = useState(false);
   const [fullname, setFullname] = useState(user.fullname);
+
+  const updateUser = useAppStore((state) => state.updateUser);
+
+  const handleSubmit = () => {
+    updateUser({ fullname });
+    setFullname(user.fullname);
+    setEditable(false);
+  };
 
   return (
     <div className="mx-auto w-full max-w-md">
@@ -35,7 +44,7 @@ export default function MyProfile({ user }: Readonly<MyProfileProps>) {
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Full Name</span>
             <div className="flex items-center gap-2">
-              //TODO: easier with zustand
+              //TODO: update the BE as well
               {editable ? (
                 <Input
                   value={fullname}
@@ -50,7 +59,7 @@ export default function MyProfile({ user }: Readonly<MyProfileProps>) {
                   variant="positive"
                   size="icon"
                   className="h-8 w-8 p-0 bg-green-500"
-                  onClick={() => setEditable(!editable)}
+                  onClick={handleSubmit}
                 >
                   <Check className="h-4 w-4 text-muted-foreground" />
                 </Button>
