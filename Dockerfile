@@ -1,5 +1,5 @@
 # 1. Build the frontend app
-FROM node:22-alpine AS frontend-build
+FROM node:22.17.0-alpine AS frontend-build
 WORKDIR /app/frontend
 
 COPY frontend/package.json frontend/package-lock.json ./

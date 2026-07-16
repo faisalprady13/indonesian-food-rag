@@ -29,7 +29,7 @@ function App() {
     }
     getMe()
       .then(setUser)
-      .catch((e) => {
+      .catch((_) => {
         setUser(null);
       });
   }, [setUser]);
