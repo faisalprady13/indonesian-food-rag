@@ -1,5 +1,11 @@
 import axios from 'axios';
-import type { Recipe, Page, RecipeSuggestion, GetRecipesParams } from '../types/Recipe.ts';
+import type {
+  Recipe,
+  Page,
+  RecipeSuggestion,
+  GetRecipesParams,
+  GetSelectedRecipeParams,
+} from '../types/Recipe.ts';
 
 export interface CurrentUser {
   username: string;
@@ -62,6 +68,11 @@ export function logout(): void {
 
 export async function getRecipes(params: GetRecipesParams = {}): Promise<Page<Recipe>> {
   const { data } = await http.get<Page<Recipe>>('/api/recipe', { params });
+  return data;
+}
+
+export async function getSelectedRecipe({ id }: GetSelectedRecipeParams): Promise<Recipe> {
+  const { data } = await http.get<Recipe>(`/api/recipe/${id}`);
   return data;
 }
 

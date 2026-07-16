@@ -37,6 +37,8 @@ class RecipeServiceTest {
 
     private MockMvc mockMvc;
 
+    private List<Recipe> savedRecipes;
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
@@ -44,7 +46,7 @@ class RecipeServiceTest {
                 .build();
 
         recipeRepository.deleteAll();
-        recipeRepository.saveAll(List.of(
+        savedRecipes = recipeRepository.saveAll(List.of(
                 newRecipe("Rendang", "Simmer beef in coconut milk and spices.", "beef", "coconut milk", "chili"),
                 newRecipe("Soto Ayam", "Simmer chicken in turmeric broth.", "chicken", "turmeric", "lemongrass")
         ));
@@ -86,8 +88,7 @@ class RecipeServiceTest {
         mockMvc.perform(get("/api/recipe").param("search", "rendang"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].title").value("Rendang"))
-                .andExpect(jsonPath("$.content[0].ingredients", hasSize(3)));
+                .andExpect(jsonPath("$.content[0].title").value("Rendang"));
     }
 
     @Test
@@ -96,6 +97,25 @@ class RecipeServiceTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
                 .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    void getRecipe_returnsRecipeWithIngredients() throws Exception {
+        Recipe rendang = savedRecipes.stream()
+                .filter(recipe -> recipe.getTitle().equals("Rendang"))
+                .findFirst()
+                .orElseThrow();
+
+        mockMvc.perform(get("/api/recipe/" + rendang.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Rendang"))
+                .andExpect(jsonPath("$.ingredients", hasSize(3)));
+    }
+
+    @Test
+    void getRecipe_returnsNotFound_whenRecipeDoesNotExist() throws Exception {
+        mockMvc.perform(get("/api/recipe/999999"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

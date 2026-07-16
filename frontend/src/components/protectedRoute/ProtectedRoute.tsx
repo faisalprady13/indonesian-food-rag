@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import AppSkeleton from '@/layout/AppSkeleton.tsx';
+import AppSkeleton from '@/components/skeletons/AppSkeleton.tsx';
 import type { CurrentUser } from '@/lib/api.ts';
 
 type ProtectedRouteProps = {

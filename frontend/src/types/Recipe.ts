@@ -2,7 +2,7 @@ export interface Recipe {
   id: number;
   title: string;
   steps: string;
-  ingredients: string[];
+  ingredients?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -28,4 +28,8 @@ export interface GetRecipesParams {
   sortBy?: string;
   direction?: 'asc' | 'desc';
   search?: string;
+}
+
+export interface GetSelectedRecipeParams {
+  id: number;
 }
