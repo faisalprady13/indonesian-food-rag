@@ -22,6 +22,7 @@ public class User {
     private Long id;
     @Column(unique=true)
     private String username;
+    private String fullname;
     private String role;
     @Column(unique=true)
     private String email;

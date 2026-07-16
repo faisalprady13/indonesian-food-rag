@@ -26,6 +26,7 @@ type SignupFormProps = React.ComponentProps<typeof Card> & {
 export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
   const navigate = useNavigate();
   const [username, setUsername] = React.useState('');
+  const [fullname, setFullname] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
@@ -43,7 +44,7 @@ export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
 
     setSubmitting(true);
     try {
-      await register({ username, email, password });
+      await register({ username, email, password, fullname });
       await login(username, password);
       await onLoginSuccess();
       navigate('/');
@@ -76,6 +77,17 @@ export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
               />
             </Field>
             <Field>
+              <FieldLabel htmlFor="fullname">Full Name</FieldLabel>
+              <Input
+                id="fullname"
+                type="text"
+                placeholder="John Doe"
+                value={fullname}
+                onChange={(e) => setFullname(e.target.value)}
+                required
+              />
+            </Field>
+            <Field>
               <FieldLabel htmlFor="email">Email</FieldLabel>
               <Input
                 id="email"
@@ -93,6 +105,7 @@ export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                minLength={8}
                 required
               />
               <FieldDescription>Must be at least 8 characters long.</FieldDescription>
@@ -104,6 +117,7 @@ export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={8}
                 required
               />
               <FieldDescription>Please confirm your password.</FieldDescription>
