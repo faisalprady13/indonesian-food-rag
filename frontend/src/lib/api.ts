@@ -9,6 +9,7 @@ import type {
 
 export interface CurrentUser {
   username: string;
+  fullname: string;
   email: string;
   imageUrl: string | null;
   provider: string | null;
@@ -50,6 +51,7 @@ export interface RegisterPayload {
   username: string;
   email: string;
   password: string;
+  fullname: string;
 }
 
 export async function register(payload: RegisterPayload): Promise<CurrentUser> {
@@ -59,6 +61,18 @@ export async function register(payload: RegisterPayload): Promise<CurrentUser> {
 
 export async function getMe(): Promise<CurrentUser> {
   const { data } = await http.get<CurrentUser>('/api/user');
+  return data;
+}
+
+export async function uploadPhoto(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await http.post<{ url: string }>('/api/user/upload-photo', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return data;
 }
 

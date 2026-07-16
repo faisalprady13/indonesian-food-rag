@@ -5,12 +5,14 @@ import { SignupForm } from '@/pages/auth/signup-form.tsx';
 import MyProfile from '@/pages/profile/my-profile.tsx';
 import Home from '@/pages/Home.tsx';
 import AppLayout from '@/layout/AppLayout.tsx';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import ProtectedRoute from './components/protectedRoute/ProtectedRoute.tsx';
-import { getMe, setToken, logout, type CurrentUser } from '@/lib/api';
+import { getMe, setToken, logout } from '@/lib/api';
+import { useAppStore } from './store/appStore.ts';
 
 function App() {
-  const [user, setUser] = useState<CurrentUser | undefined | null>(undefined);
+  const user = useAppStore((state) => state.user);
+  const setUser = useAppStore((state) => state.setUser);
 
   async function refreshUser() {
     const currentUser = await getMe();
@@ -27,8 +29,10 @@ function App() {
     }
     getMe()
       .then(setUser)
-      .catch(() => setUser(null));
-  }, []);
+      .catch((e) => {
+        setUser(null);
+      });
+  }, [setUser]);
 
   function handleLogout() {
     logout();
