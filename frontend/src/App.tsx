@@ -59,7 +59,7 @@ function App() {
       />
       <Route element={<ProtectedRoute user={user} />}>
         <Route element={<AppLayout user={user!} onLogout={handleLogout} />}>
-          <Route index element={<Home user={user!} />} />
+          <Route index element={<Home />} />
           <Route path="/profile" element={<MyProfile user={user!} />} />
         </Route>
       </Route>

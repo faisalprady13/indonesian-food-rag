@@ -20,10 +20,12 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(unique=true)
     private String username;
     private String role;
+    @Column(unique=true)
     private String email;
+    @JsonIgnore
     private String password;
     private String provider;
 

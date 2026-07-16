@@ -5,6 +5,7 @@ import org.myspring.backend.dto.UserResponse;
 import org.myspring.backend.model.User;
 import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.service.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,17 +17,21 @@ public class UserController {
     private final UserService service;
 
     @GetMapping
-    public UserResponse getMe(@AuthenticationPrincipal UserPrincipal principal) {
-        return UserResponse.fromUser(principal.user());
+    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(UserResponse.fromUser(principal.user()));
     }
 
     @PostMapping("/register")
-    public UserResponse register(@RequestBody User user) {
-        return UserResponse.fromUser(service.register(user));
+    public ResponseEntity<UserResponse> register(@RequestBody User user) {
+        return ResponseEntity.ok(
+                UserResponse.fromUser(service.register(user))
+        );
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody User user) {
-        return service.verify(user);
+    public ResponseEntity<String> login(@RequestBody User user) {
+        return ResponseEntity.ok(
+                service.verify(user)
+        );
     }
 }

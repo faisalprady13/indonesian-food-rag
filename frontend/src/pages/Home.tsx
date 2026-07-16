@@ -23,25 +23,15 @@ import {
 } from '@/components/ui/table.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog.tsx';
-import { autocompleteRecipes, getRecipes, type CurrentUser } from '@/lib/api.ts';
+import RecipeTableSkeleton from '@/components/skeletons/RecipeTableSkeleton.tsx';
+import RecipeDetailDialog from '@/components/recipeDetailDialog/RecipeDetailDialog.tsx';
+import { autocompleteRecipes, getRecipes, getSelectedRecipe } from '@/lib/api.ts';
 import type { Page, Recipe, RecipeSuggestion } from '@/types/Recipe.ts';
 
 import { PAGE_SIZE } from '../constants/page.ts';
 import { DEBOUNCE_300_MS } from '@/constants/debounce.ts';
 
-type HomeProps = {
-  user: CurrentUser;
-};
-
-export default function Home({ user }: Readonly<HomeProps>) {
+export default function Home() {
   const [searchInput, setSearchInput] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [suggestions, setSuggestions] = useState<RecipeSuggestion[]>([]);
@@ -50,11 +40,14 @@ export default function Home({ user }: Readonly<HomeProps>) {
   const [page, setPage] = useState(0);
   const [recipesPage, setRecipesPage] = useState<Page<Recipe> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingSelectedRecipe, setLoadingSelectedRecipe] = useState(true);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
 
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const suggestionRequestId = useRef(0);
   const recipesRequestId = useRef(0);
+  const selectedRecipeRequestId = useRef(0);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -86,13 +79,29 @@ export default function Home({ user }: Readonly<HomeProps>) {
   useEffect(() => {
     const requestId = ++recipesRequestId.current;
     setLoading(true);
-    getRecipes({ page, size: PAGE_SIZE, search: appliedSearch }).then((data) => {
-      if (requestId === recipesRequestId.current) {
-        setRecipesPage(data);
-        setLoading(false);
-      }
-    });
+    getRecipes({ page, size: PAGE_SIZE, search: appliedSearch })
+      .then((data) => {
+        if (requestId === recipesRequestId.current) {
+          setRecipesPage(data);
+        }
+      })
+      .finally(() => setLoading(false));
   }, [page, appliedSearch]);
+
+  useEffect(() => {
+    if (selectedRecipeId === null) {
+      return;
+    }
+    const requestId: number = ++selectedRecipeRequestId.current;
+    setLoadingSelectedRecipe(true);
+    getSelectedRecipe({ id: selectedRecipeId })
+      .then((data) => {
+        if (requestId === selectedRecipeRequestId.current) {
+          setSelectedRecipe(data);
+        }
+      })
+      .finally(() => setLoadingSelectedRecipe(false));
+  }, [selectedRecipeId]);
 
   function applySearch(value: string) {
     setAppliedSearch(value.trim());
@@ -111,7 +120,7 @@ export default function Home({ user }: Readonly<HomeProps>) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6">
       <div ref={searchBoxRef} className="relative mx-auto w-full max-w-md">
         <div className="relative">
           <HugeiconsIcon
@@ -171,25 +180,12 @@ export default function Home({ user }: Readonly<HomeProps>) {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
-                <TableHead>Ingredients</TableHead>
                 <TableHead>Created</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                Array.from({ length: PAGE_SIZE }, (_, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-48" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                  </TableRow>
-                ))
+                <RecipeTableSkeleton rows={PAGE_SIZE} />
               ) : recipesPage && recipesPage.content.length > 0 ? (
                 recipesPage.content.map((recipe) => (
                   <TableRow
@@ -197,18 +193,15 @@ export default function Home({ user }: Readonly<HomeProps>) {
                     key={recipe.id}
                     role="button"
                     tabIndex={0}
-                    onClick={() => setSelectedRecipe(recipe)}
+                    onClick={() => setSelectedRecipeId(recipe.id)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        setSelectedRecipe(recipe);
+                        setSelectedRecipeId(recipe.id);
                       }
                     }}
                   >
-                    <TableCell className="max-w-xs truncate font-medium">{recipe.title}</TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">
-                      {recipe.ingredients.join(', ') || '—'}
-                    </TableCell>
+                    <TableCell className="font-medium">{recipe.title}</TableCell>
                     <TableCell className="whitespace-nowrap text-muted-foreground">
                       {new Date(recipe.createdAt).toLocaleDateString()}
                     </TableCell>
@@ -255,44 +248,16 @@ export default function Home({ user }: Readonly<HomeProps>) {
         </CardContent>
       </Card>
 
-      <Dialog
-        open={selectedRecipe !== null}
+      <RecipeDetailDialog
+        open={selectedRecipeId !== null}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedRecipe(null);
+            setSelectedRecipeId(null);
           }
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedRecipe?.title}</DialogTitle>
-            <DialogDescription className="text-xs">
-              {selectedRecipe &&
-                `Created ${new Date(selectedRecipe.createdAt).toLocaleDateString()}`}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="mb-1.5 text-sm font-medium">Ingredients</h3>
-              {selectedRecipe?.ingredients.length ? (
-                <ul className="list-inside list-disc text-sm text-muted-foreground">
-                  {selectedRecipe.ingredients.map((ingredient, index) => (
-                    <li key={index}>{ingredient}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground">No ingredients listed.</p>
-              )}
-            </div>
-            <div>
-              <h3 className="mb-1.5 text-sm font-medium">Steps</h3>
-              <p className="whitespace-pre-line text-sm text-muted-foreground">
-                {selectedRecipe?.steps || 'No steps listed.'}
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        loading={loadingSelectedRecipe}
+        recipe={selectedRecipe}
+      />
     </div>
   );
 }
