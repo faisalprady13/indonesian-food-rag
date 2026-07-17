@@ -1,4 +1,4 @@
-package org.myspring.backend.dto;
+package org.myspring.backend.dto.response;
 
 import org.myspring.backend.model.Ingredient;
 import org.myspring.backend.model.Recipe;

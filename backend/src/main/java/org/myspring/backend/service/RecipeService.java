@@ -1,9 +1,9 @@
 package org.myspring.backend.service;
 
 import lombok.RequiredArgsConstructor;
-import org.myspring.backend.dto.RecipeDetailResponse;
-import org.myspring.backend.dto.RecipeResponse;
-import org.myspring.backend.dto.RecipeSuggestionResponse;
+import org.myspring.backend.dto.response.RecipeDetailResponse;
+import org.myspring.backend.dto.response.RecipeResponse;
+import org.myspring.backend.dto.response.RecipeSuggestionResponse;
 import org.myspring.backend.model.Recipe;
 import org.myspring.backend.model.User;
 import org.myspring.backend.repository.RecipeRepository;

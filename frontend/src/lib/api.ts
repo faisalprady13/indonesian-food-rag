@@ -9,6 +9,7 @@ import type {
 } from '../types/Recipe.ts';
 
 export interface CurrentUser {
+  id: number;
   username: string;
   fullname: string;
   email: string;
@@ -41,7 +42,7 @@ http.interceptors.request.use((config) => {
 });
 
 export async function login(username: string, password: string): Promise<void> {
-  const { data: token } = await http.post<string>('/api/user/login', { username, password });
+  const { data: token } = await http.post<string>('/api/auth/login', { username, password });
   if (token === 'fail') {
     throw new Error('Invalid username or password');
   }
@@ -56,20 +57,24 @@ export interface RegisterPayload {
 }
 
 export async function register(payload: RegisterPayload): Promise<CurrentUser> {
-  const { data } = await http.post<CurrentUser>('/api/user/register', payload);
+  const { data } = await http.post<CurrentUser>('/api/auth/register', payload);
   return data;
 }
 
 export async function getMe(): Promise<CurrentUser> {
-  const { data } = await http.get<CurrentUser>('/api/user');
+  const { data } = await http.get<CurrentUser>('/api/auth');
   return data;
 }
 
-export async function uploadPhoto(file: File): Promise<{ url: string }> {
+export async function updateUserApi(user: CurrentUser, file?: File): Promise<CurrentUser> {
   const formData = new FormData();
-  formData.append('file', file);
+  if (file) {
+    formData.append('file', file);
+  }
+  formData.append('id', user.id.toString());
+  formData.append('fullname', user.fullname);
 
-  const { data } = await http.post<{ url: string }>('/api/user/upload-photo', formData, {
+  const { data } = await http.put<CurrentUser>('/api/user/update', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },

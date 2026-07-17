@@ -3,6 +3,8 @@ package org.myspring.backend.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.myspring.backend.dto.UserDto;
+import org.myspring.backend.dto.request.RegisterRequest;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -20,11 +22,11 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique=true)
+    @Column(unique = true)
     private String username;
     private String fullname;
     private String role;
-    @Column(unique=true)
+    @Column(unique = true)
     private String email;
     @JsonIgnore
     private String password;
@@ -58,5 +60,15 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+
+    public void update(String fullname) {
+        this.fullname = fullname != null ? fullname : this.fullname;
+    }
+
+    public void update(String fullname, String imageUrl) {
+        this.fullname = fullname != null ? fullname : this.fullname;
+        this.imageUrl = imageUrl != null ? imageUrl : this.imageUrl;
     }
 }

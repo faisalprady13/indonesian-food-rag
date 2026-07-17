@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator.tsx';
-import type { CurrentUser } from '@/lib/api.ts';
+import { updateUserApi, type CurrentUser } from '@/lib/api.ts';
 import { useAppStore } from '@/store/appStore';
 import { Check, Pen } from 'lucide-react';
 import { useState } from 'react';
@@ -18,9 +18,10 @@ export default function MyProfile({ user }: Readonly<MyProfileProps>) {
 
   const updateUser = useAppStore((state) => state.updateUser);
 
-  const handleSubmit = () => {
-    updateUser({ fullname });
-    setFullname(user.fullname);
+  const handleSubmit = async () => {
+    const updatedUser = await updateUserApi({ ...user, fullname: fullname });
+    updateUser(updatedUser);
+    setFullname('');
     setEditable(false);
   };
 
@@ -44,7 +45,6 @@ export default function MyProfile({ user }: Readonly<MyProfileProps>) {
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Full Name</span>
             <div className="flex items-center gap-2">
-              //TODO: update the BE as well
               {editable ? (
                 <Input
                   value={fullname}

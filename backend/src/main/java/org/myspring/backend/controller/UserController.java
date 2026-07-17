@@ -1,9 +1,12 @@
 package org.myspring.backend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.myspring.backend.dto.UserResponse;
+import org.myspring.backend.dto.UserDto;
+import org.myspring.backend.dto.response.UserResponse;
+import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
 import org.myspring.backend.model.UserPrincipal;
+import org.myspring.backend.service.AuthService;
 import org.myspring.backend.service.CloudinaryService;
 import org.myspring.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -18,42 +21,20 @@ import java.util.Map;
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
+    private final UserService userService;
 
-
-    // TODO: put cloudinaryService inside userService.updateUser()
-    private final UserService service;
-    private final CloudinaryService cloudinaryService;
-
-    @GetMapping
-    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(UserResponse.fromUser(principal.user()));
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(@RequestBody User user) {
-        return ResponseEntity.ok(
-                UserResponse.fromUser(service.register(user))
-        );
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
-        return ResponseEntity.ok(
-                service.verify(user)
-        );
-    }
-
-    @PostMapping("/upload-photo")
-    public ResponseEntity<Map<String, String>> uploadImage(
-            @RequestPart(name = "file", required = false) MultipartFile file) throws IOException {
-
-        String url = cloudinaryService.upload(file);
-        // TODO: store to db
-        // TODO: put cloudinaryService inside userService.updateUser()
-
-        return ResponseEntity.ok(
-                Map.of("url", url)
-        );
-
+    @PutMapping("/update")
+    public ResponseEntity<User> updateUser(
+            @ModelAttribute UserDto userDto,
+            @RequestPart(name = "file", required = false) MultipartFile file
+    ) throws IOException, UserNotFound {
+        User user;
+        System.out.println(userDto);
+        if (file == null || file.isEmpty()) {
+            user = userService.updateUser(userDto);
+        } else {
+            user = userService.updateProfilePic(userDto, file);
+        }
+        return ResponseEntity.ok(user);
     }
 }

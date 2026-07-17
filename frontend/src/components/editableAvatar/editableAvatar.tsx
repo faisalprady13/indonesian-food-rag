@@ -14,7 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { uploadPhoto } from '@/lib/api';
+import { updateUserApi } from '@/lib/api';
+import { useAppStore } from '@/store/appStore';
 
 interface EditableAvatarProps {
   src?: string;
@@ -24,15 +25,14 @@ interface EditableAvatarProps {
 }
 
 export function EditableAvatar({
-  src,
   fallback = 'ME',
   alt = 'Profile picture',
   className,
 }: EditableAvatarProps) {
+  const user = useAppStore((state) => state.user);
+  const updateUser = useAppStore((state) => state.updateUser);
   const [open, setOpen] = useState(false);
-  //TODO: image is not needed, should be from global user
-  const [image, setImage] = useState<string | undefined>(src);
-  const [preview, setPreview] = useState<string | undefined>(src);
+  const [preview, setPreview] = useState<string | null>(user?.imageUrl ?? null);
   const [file, setFile] = useState<File | undefined>();
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -45,17 +45,20 @@ export function EditableAvatar({
     setFile(file);
   }, []);
 
+  if (!user) {
+    return null;
+  }
+
   const handleSave = async () => {
-    if (file) {
-      const { url } = await uploadPhoto(file);
-      //TODO: this shouldnt be a problem if user is global
-      setImage(url);
+    if (file && user) {
+      const updatedUser = await updateUserApi(user, file);
+      updateUser(updatedUser);
     }
     setOpen(false);
   };
 
   const openModal = () => {
-    setPreview(src);
+    setPreview(user.imageUrl);
     setOpen(true);
   };
 
@@ -71,7 +74,7 @@ export function EditableAvatar({
         )}
       >
         <Avatar className="size-24 border border-border">
-          <AvatarImage src={image || src || '/placeholder.svg'} alt={alt} />
+          <AvatarImage src={user.imageUrl ?? '/placeholder.svg'} alt={alt} />
           <AvatarFallback className="text-xl">{fallback}</AvatarFallback>
         </Avatar>
         <span className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 transition-opacity group-hover:opacity-100">
@@ -126,12 +129,12 @@ export function EditableAvatar({
               />
             </div>
 
-            {preview && preview !== image && (
+            {preview && preview !== user.imageUrl && (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setPreview(image)}
+                onClick={() => setPreview(user.imageUrl)}
                 className="gap-1"
               >
                 <X className="size-4" />
@@ -144,7 +147,7 @@ export function EditableAvatar({
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!preview || preview === image}>
+            <Button onClick={handleSave} disabled={!preview || preview === user.imageUrl}>
               Save
             </Button>
           </DialogFooter>

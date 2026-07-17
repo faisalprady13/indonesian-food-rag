@@ -1,0 +1,10 @@
+package org.myspring.backend.dto.response;
+
+import org.myspring.backend.model.User;
+
+public record UserResponse(Long id, String username, String email, String imageUrl, String provider, String fullname) {
+
+    public static UserResponse fromUser(User user) {
+        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getImageUrl(), user.getProvider(), user.getFullname());
+    }
+}

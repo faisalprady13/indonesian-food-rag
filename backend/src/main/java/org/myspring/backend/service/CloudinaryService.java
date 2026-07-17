@@ -18,7 +18,6 @@ public class CloudinaryService {
     }
 
     public String upload(MultipartFile file) throws IOException {
-
         Map uploadResult = cloudinary.uploader()
                 .upload(
                         file.getBytes(),

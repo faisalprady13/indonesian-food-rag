@@ -1,36 +1,36 @@
 package org.myspring.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.myspring.backend.dto.UserDto;
+import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
 import org.myspring.backend.repository.UserRepository;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final JwtService jwtService;
+    private final CloudinaryService cloudinaryService;
     private final UserRepository userRepository;
-    private final AuthenticationManager authManager;
 
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-
-    public User register(User user) {
-        user.setPassword(encoder.encode(user.getPassword()));
-        user.setRole("USER");
+    @Transactional
+    public User updateUser(UserDto userDto) throws UserNotFound {
+        User user = userRepository.findById(userDto.id()).orElseThrow(() -> new UserNotFound("UserId " + userDto.id() + " is not found"));
+        user.update(userDto.fullname());
         userRepository.save(user);
         return user;
     }
 
-    public String verify(User user) {
-        Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-        if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(user.getUsername());
-        } else {
-            return "fail";
-        }
+    @Transactional
+    public User updateProfilePic(UserDto userDto, MultipartFile file) throws IOException, UserNotFound {
+        User user = userRepository.findById(userDto.id()).orElseThrow(() -> new UserNotFound("UserId " + userDto.id() + " is not found"));
+        String url = cloudinaryService.upload(file);
+        user.update(userDto.fullname(), url);
+        userRepository.save(user);
+        return user;
     }
 }
