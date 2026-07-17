@@ -21,7 +21,7 @@ export default function MyProfile({ user }: Readonly<MyProfileProps>) {
   const handleSubmit = async () => {
     const updatedUser = await updateUserApi({ ...user, fullname: fullname });
     updateUser(updatedUser);
-    setFullname('');
+    setFullname(fullname);
     setEditable(false);
   };
 
