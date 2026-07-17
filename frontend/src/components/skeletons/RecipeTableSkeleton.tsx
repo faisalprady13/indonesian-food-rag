@@ -11,10 +11,13 @@ export default function RecipeTableSkeleton({ rows }: RecipeTableSkeletonProps) 
       {Array.from({ length: rows }, (_, index) => (
         <TableRow key={index}>
           <TableCell>
-            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-5 w-5 rounded-full" />
           </TableCell>
           <TableCell>
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-5 w-32" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-5 w-20" />
           </TableCell>
         </TableRow>
       ))}

@@ -5,6 +5,7 @@ export interface Recipe {
   ingredients?: string[];
   createdAt: string;
   updatedAt: string;
+  favorited: boolean;
 }
 
 export interface RecipeSuggestion {
@@ -33,3 +34,11 @@ export interface GetRecipesParams {
 export interface GetSelectedRecipeParams {
   id: number;
 }
+
+export interface GetFavoriteRecipeParams {
+  page?: number;
+  size?: number;
+  search?: string;
+}
+
+export type RecipeTab = 'all' | 'favorites';

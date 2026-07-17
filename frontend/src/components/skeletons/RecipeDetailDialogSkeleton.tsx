@@ -10,9 +10,12 @@ export default function RecipeDetailDialogSkeleton() {
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>
-          <Skeleton className="h-5 w-40" />
-        </DialogTitle>
+        <div className="flex items-center gap-2">
+          <DialogTitle>
+            <Skeleton className="h-5 w-40" />
+          </DialogTitle>
+          <Skeleton className="h-4 w-4 shrink-0" />
+        </div>
         <DialogDescription>
           <Skeleton className="h-3 w-28" />
         </DialogDescription>

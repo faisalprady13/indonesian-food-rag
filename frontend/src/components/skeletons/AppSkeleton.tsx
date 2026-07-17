@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card.tsx';
+import { Card } from '@/components/ui/card.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 
 export default function AppSkeleton() {
@@ -16,24 +16,15 @@ export default function AppSkeleton() {
       </header>
 
       <main className="flex flex-1 flex-col p-6 md:p-10">
-        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6">
+        <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6">
           <Skeleton className="mx-auto h-9 w-full max-w-md rounded-md" />
 
-          <Card className="w-full">
-            <CardHeader>
-              <Skeleton className="h-5 w-24" />
-              <Skeleton className="h-4 w-40" />
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              {Array.from({ length: 5 }, (_, index) => (
-                <div key={index} className="flex items-center gap-4">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <div className="flex h-9 w-fit gap-1 rounded-lg bg-muted p-[3px]">
+            <Skeleton className="h-full w-16 rounded-md" />
+            <Skeleton className="h-full w-32 rounded-md" />
+          </div>
+
+          <Card className="w-full"></Card>
         </div>
       </main>
     </div>

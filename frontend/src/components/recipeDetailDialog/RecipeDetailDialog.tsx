@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ interface RecipeDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   loading: boolean;
   recipe: Recipe | null;
+  onToggleFavorite: (recipe: Recipe) => void;
 }
 
 export default function RecipeDetailDialog({
@@ -20,6 +22,7 @@ export default function RecipeDetailDialog({
   onOpenChange,
   loading,
   recipe,
+  onToggleFavorite,
 }: RecipeDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -28,7 +31,23 @@ export default function RecipeDetailDialog({
       ) : (
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{recipe?.title}</DialogTitle>
+            <div className="flex items-center gap-2">
+              <DialogTitle>{recipe?.title}</DialogTitle>
+              {recipe && (
+                <button
+                  type="button"
+                  onClick={() => onToggleFavorite(recipe)}
+                  aria-label={recipe.favorited ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-pressed={recipe.favorited}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Star
+                    size={16}
+                    className={recipe.favorited ? 'fill-current text-yellow-500' : ''}
+                  />
+                </button>
+              )}
+            </div>
             <DialogDescription className="text-xs">
               {recipe && `Created ${new Date(recipe.createdAt).toLocaleDateString()}`}
             </DialogDescription>

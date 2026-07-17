@@ -12,17 +12,19 @@ public record RecipeDetailResponse(
         String steps,
         List<String> ingredients,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        boolean favorited
 ) {
 
-    public static RecipeDetailResponse fromRecipe(Recipe recipe) {
+    public static RecipeDetailResponse fromRecipe(Recipe recipe, boolean favorited) {
         return new RecipeDetailResponse(
                 recipe.getId(),
                 recipe.getTitle(),
                 recipe.getSteps(),
                 recipe.getIngredients().stream().map(Ingredient::getName).toList(),
                 recipe.getCreatedAt(),
-                recipe.getUpdatedAt()
+                recipe.getUpdatedAt(),
+                favorited
         );
     }
 }

@@ -8,6 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.RecipeDetailResponse;
 import org.myspring.backend.dto.RecipeResponse;
 import org.myspring.backend.dto.RecipeSuggestionResponse;
+import org.myspring.backend.model.User;
+import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.service.RecipeService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,48 +32,85 @@ class RecipeControllerTest {
     @InjectMocks
     private RecipeController recipeController;
 
+    private final UserPrincipal principal = new UserPrincipal(User.builder().id(1L).build());
+
     @Test
     void getRecipes_delegatesToServiceAndReturnsItsResult() {
         RecipeResponse rendang = new RecipeResponse(
-                1L, "Rendang", "Simmer beef in coconut milk.", LocalDateTime.now(), LocalDateTime.now()
+                1L, "Rendang", "Simmer beef in coconut milk.", LocalDateTime.now(), LocalDateTime.now(), true
         );
         Page<RecipeResponse> page = new PageImpl<>(List.of(rendang));
-        when(recipeService.getRecipes(0, 10, "id", "asc", "rendang")).thenReturn(page);
+        when(recipeService.getRecipes(0, 10, "id", "asc", "rendang", 1L)).thenReturn(page);
 
-        ResponseEntity<Page<RecipeResponse>> result = recipeController.getRecipes(0, 10, "id", "asc", "rendang");
+        ResponseEntity<Page<RecipeResponse>> result =
+                recipeController.getRecipes(principal, 0, 10, "id", "asc", "rendang");
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assert result.getBody() != null;
         assertThat(result.getBody().getContent()).containsExactly(rendang);
-        verify(recipeService).getRecipes(0, 10, "id", "asc", "rendang");
+        verify(recipeService).getRecipes(0, 10, "id", "asc", "rendang", 1L);
     }
 
     @Test
     void getRecipes_passesNullSearchThrough_whenNotProvided() {
         Page<RecipeResponse> page = new PageImpl<>(List.of());
-        when(recipeService.getRecipes(0, 10, "id", "asc", null)).thenReturn(page);
+        when(recipeService.getRecipes(0, 10, "id", "asc", null, 1L)).thenReturn(page);
 
-        ResponseEntity<Page<RecipeResponse>> result = recipeController.getRecipes(0, 10, "id", "asc", null);
+        ResponseEntity<Page<RecipeResponse>> result =
+                recipeController.getRecipes(principal, 0, 10, "id", "asc", null);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assert result.getBody() != null;
         assertThat(result.getBody().getContent()).isEmpty();
-        verify(recipeService).getRecipes(0, 10, "id", "asc", null);
+        verify(recipeService).getRecipes(0, 10, "id", "asc", null, 1L);
     }
 
     @Test
     void getRecipe_delegatesToServiceAndReturnsItsResult() {
         RecipeDetailResponse rendang = new RecipeDetailResponse(
                 1L, "Rendang", "Simmer beef in coconut milk.",
-                List.of("beef", "coconut milk"), LocalDateTime.now(), LocalDateTime.now()
+                List.of("beef", "coconut milk"), LocalDateTime.now(), LocalDateTime.now(), true
         );
-        when(recipeService.getRecipe(1L)).thenReturn(rendang);
+        when(recipeService.getRecipe(1L, 1L)).thenReturn(rendang);
 
-        ResponseEntity<RecipeDetailResponse> result = recipeController.getRecipe(1L);
+        ResponseEntity<RecipeDetailResponse> result = recipeController.getRecipe(principal, 1L);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isEqualTo(rendang);
-        verify(recipeService).getRecipe(1L);
+        verify(recipeService).getRecipe(1L, 1L);
+    }
+
+    @Test
+    void getFavoriteRecipes_delegatesToServiceAndReturnsItsResult() {
+        RecipeResponse rendang = new RecipeResponse(
+                1L, "Rendang", "Simmer beef in coconut milk.", LocalDateTime.now(), LocalDateTime.now(), true
+        );
+        Page<RecipeResponse> page = new PageImpl<>(List.of(rendang));
+        when(recipeService.getFavoriteRecipes(1L, 0, 10, "rendang")).thenReturn(page);
+
+        ResponseEntity<Page<RecipeResponse>> result =
+                recipeController.getFavoriteRecipes(principal, 0, 10, "rendang");
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assert result.getBody() != null;
+        assertThat(result.getBody().getContent()).containsExactly(rendang);
+        verify(recipeService).getFavoriteRecipes(1L, 0, 10, "rendang");
+    }
+
+    @Test
+    void addFavorite_delegatesToServiceAndReturnsNoContent() {
+        ResponseEntity<Void> result = recipeController.addFavorite(principal, 1L);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(recipeService).addFavorite(1L, 1L);
+    }
+
+    @Test
+    void removeFavorite_delegatesToServiceAndReturnsNoContent() {
+        ResponseEntity<Void> result = recipeController.removeFavorite(principal, 1L);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(recipeService).removeFavorite(1L, 1L);
     }
 
     @Test

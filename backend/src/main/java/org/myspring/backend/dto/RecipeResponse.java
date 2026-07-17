@@ -9,16 +9,18 @@ public record RecipeResponse(
         String title,
         String steps,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        boolean favorited
 ) {
 
-    public static RecipeResponse fromRecipe(Recipe recipe) {
+    public static RecipeResponse fromRecipe(Recipe recipe, boolean favorited) {
         return new RecipeResponse(
                 recipe.getId(),
                 recipe.getTitle(),
                 recipe.getSteps(),
                 recipe.getCreatedAt(),
-                recipe.getUpdatedAt()
+                recipe.getUpdatedAt(),
+                favorited
         );
     }
 }
