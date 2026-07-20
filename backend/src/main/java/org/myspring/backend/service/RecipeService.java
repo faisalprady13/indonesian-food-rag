@@ -8,10 +8,12 @@ import org.myspring.backend.model.Recipe;
 import org.myspring.backend.model.User;
 import org.myspring.backend.repository.RecipeRepository;
 import org.myspring.backend.repository.UserRepository;
+import org.myspring.backend.specification.RecipeSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,12 +78,14 @@ public class RecipeService {
         return RecipeDetailResponse.fromRecipe(recipe, favorited);
     }
 
+    @Transactional(readOnly = true)
     public List<RecipeSuggestionResponse> autocomplete(String query, int limit) {
         if (query == null || query.isBlank()) {
             return List.of();
         }
-        Pageable pageable = PageRequest.of(0, limit);
-        return recipeRepository.findByTitleContainingIgnoreCaseOrderByTitleAsc(query, pageable)
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("title").ascending());
+        Specification<Recipe> spec = RecipeSpecifications.titleContainsAllWords(query);
+        return recipeRepository.findAll(spec, pageable)
                 .stream()
                 .map(RecipeSuggestionResponse::fromRecipe)
                 .toList();

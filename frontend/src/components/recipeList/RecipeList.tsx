@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { Settings, Star } from 'lucide-react';
 import {
   Card,
@@ -18,9 +16,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table.tsx';
-import { Button } from '@/components/ui/button.tsx';
 import { Label } from '@/components/ui/label.tsx';
 import { NumberField, NumberFieldGroup, NumberFieldInput } from '@/components/ui/number-field.tsx';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
 import {
   Select,
@@ -33,6 +39,32 @@ import RecipeTableSkeleton from '@/components/skeletons/RecipeTableSkeleton.tsx'
 import { PAGE_SIZE_OPTIONS } from '@/constants/page.ts';
 
 import type { Page, Recipe, RecipeTab } from '@/types/Recipe.ts';
+
+function getPageNumbers(current: number, total: number): (number | 'ellipsis')[] {
+  const delta = 1;
+  const pages: number[] = [];
+
+  for (let i = 0; i < total; i++) {
+    if (i === 0 || i === total - 1 || (i >= current - delta && i <= current + delta)) {
+      pages.push(i);
+    }
+  }
+
+  const result: (number | 'ellipsis')[] = [];
+  let previous: number | null = null;
+  for (const page of pages) {
+    if (previous !== null) {
+      if (page - previous === 2) {
+        result.push(previous + 1);
+      } else if (page - previous > 2) {
+        result.push('ellipsis');
+      }
+    }
+    result.push(page);
+    previous = page;
+  }
+  return result;
+}
 
 interface RecipeListProps {
   recipesPage: Page<Recipe> | null;
@@ -124,7 +156,15 @@ export default function RecipeList({
                   disabled={loading}
                 >
                   <NumberFieldGroup>
-                    <NumberFieldInput id="page-number-input" />
+                    <NumberFieldInput
+                      id="page-number-input"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.currentTarget.blur();
+                        }
+                      }}
+                    />
                   </NumberFieldGroup>
                 </NumberField>
               </div>
@@ -195,31 +235,44 @@ export default function RecipeList({
         </Table>
 
         {recipesPage && recipesPage.totalElements > 0 && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
             <span className="text-sm text-muted-foreground">
               Page {recipesPage.number + 1} of {recipesPage.totalPages} ·{' '}
               {recipesPage.totalElements} recipes
             </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon-sm"
-                disabled={recipesPage.first || loading}
-                onClick={() => onPageChange((p) => Math.max(0, p - 1))}
-                aria-label="Previous page"
-              >
-                <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon-sm"
-                disabled={recipesPage.last || loading}
-                onClick={() => onPageChange((p) => p + 1)}
-                aria-label="Next page"
-              >
-                <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
-              </Button>
-            </div>
+            <Pagination className="mx-0 w-auto">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    disabled={recipesPage.first || loading}
+                    onClick={() => onPageChange((p) => Math.max(0, p - 1))}
+                  />
+                </PaginationItem>
+                {getPageNumbers(recipesPage.number, recipesPage.totalPages).map((page, index) =>
+                  page === 'ellipsis' ? (
+                    <PaginationItem key={`ellipsis-${index}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        isActive={page === recipesPage.number}
+                        disabled={loading}
+                        onClick={() => onPageChange(() => page)}
+                      >
+                        {page + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ),
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    disabled={recipesPage.last || loading}
+                    onClick={() => onPageChange((p) => p + 1)}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
       </CardContent>
