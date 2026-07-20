@@ -40,7 +40,7 @@ class UserServiceTest {
         UserDto userDto = new UserDto(1L, "New Name");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        User result = userService.updateUser(userDto);
+        User result = userService.updateUser(1L, userDto);
 
         assertThat(result.getFullname()).isEqualTo("New Name");
         verify(userRepository).save(user);
@@ -51,7 +51,7 @@ class UserServiceTest {
         UserDto userDto = new UserDto(999L, "Ghost");
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFound.class, () -> userService.updateUser(userDto));
+        assertThrows(UserNotFound.class, () -> userService.updateUser(999L, userDto));
         verify(userRepository, never()).save(any());
     }
 
@@ -63,7 +63,7 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(cloudinaryService.upload(file)).thenReturn("https://example.com/new-profile.png");
 
-        User result = userService.updateProfilePic(userDto, file);
+        User result = userService.updateProfilePic(1L, userDto, file);
 
         assertThat(result.getFullname()).isEqualTo("New Name");
         assertThat(result.getImageUrl()).isEqualTo("https://example.com/new-profile.png");
@@ -76,7 +76,35 @@ class UserServiceTest {
         MultipartFile file = new MockMultipartFile("file", "profile.png", "image/png", "image-bytes".getBytes());
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFound.class, () -> userService.updateProfilePic(userDto, file));
+        assertThrows(UserNotFound.class, () -> userService.updateProfilePic(999L, userDto, file));
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteUser_deletesUser_whenUsernameMatches() throws UserNotFound {
+        User user = User.builder().id(1L).username("johndoe").build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        userService.deleteUser(1L, "johndoe");
+
+        verify(userRepository).delete(user);
+    }
+
+    @Test
+    void deleteUser_doesNotDelete_whenUsernameDoesNotMatch() throws UserNotFound {
+        User user = User.builder().id(1L).username("johndoe").build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        userService.deleteUser(1L, "someoneelse");
+
+        verify(userRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteUser_throwsUserNotFound_whenUserDoesNotExist() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFound.class, () -> userService.deleteUser(999L, "ghost"));
+        verify(userRepository, never()).delete(any());
     }
 }
