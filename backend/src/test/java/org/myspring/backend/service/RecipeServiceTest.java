@@ -235,4 +235,43 @@ class RecipeServiceTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
+
+    @Test
+    void autocomplete_matchesTitle_whenQueryWordsAreOutOfOrderAndPartial() throws Exception {
+        recipeRepository.save(newRecipe("Apples and Orange", "Peel and slice.", "apple", "orange"));
+
+        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "Orange Apple"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Apples and Orange"));
+    }
+
+    @Test
+    void autocomplete_isCaseInsensitiveAcrossMultipleWords() throws Exception {
+        recipeRepository.save(newRecipe("Apples and Orange", "Peel and slice.", "apple", "orange"));
+
+        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "APPLE oraNGE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Apples and Orange"));
+    }
+
+    @Test
+    void autocomplete_returnsNoMatches_whenOneWordIsMissingFromTitle() throws Exception {
+        recipeRepository.save(newRecipe("Apples and Orange", "Peel and slice.", "apple", "orange"));
+
+        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "Apple Banana"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void autocomplete_respectsLimitParameter() throws Exception {
+        recipeRepository.save(newRecipe("Soto Betawi", "Simmer beef in spiced broth.", "beef", "broth"));
+
+        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "soto").param("limit", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Soto Ayam"));
+    }
 }
