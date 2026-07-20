@@ -71,15 +71,18 @@ export async function updateUserApi(user: CurrentUser, file?: File): Promise<Cur
   if (file) {
     formData.append('file', file);
   }
-  formData.append('id', user.id.toString());
   formData.append('fullname', user.fullname);
 
-  const { data } = await http.put<CurrentUser>('/api/user/update', formData, {
+  const { data } = await http.put<CurrentUser>(`/api/user/${user.id}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
   return data;
+}
+
+export async function deleteUserApi(id: number, username: string): Promise<void> {
+  await http.delete(`/api/user/${id}/${username}`);
 }
 
 export function logout(): void {

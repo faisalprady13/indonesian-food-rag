@@ -1,9 +1,10 @@
+import ConfirmDeleteModal from '@/components/confirmDeleteModal/ConfirmDeleteModal';
 import { EditableAvatar } from '@/components/editableAvatar/editableAvatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator.tsx';
-import { updateUserApi, type CurrentUser } from '@/lib/api.ts';
+import { deleteUserApi, logout, updateUserApi, type CurrentUser } from '@/lib/api.ts';
 import { useAppStore } from '@/store/appStore';
 import { Check, Pen } from 'lucide-react';
 import { useState } from 'react';
@@ -13,27 +14,35 @@ type MyProfileProps = {
 };
 
 export default function MyProfile({ user }: Readonly<MyProfileProps>) {
+  const setUser = useAppStore((state) => state.setUser);
+
   const [editable, setEditable] = useState(false);
   const [fullname, setFullname] = useState(user.fullname);
 
   const updateUser = useAppStore((state) => state.updateUser);
 
   const handleSubmit = async () => {
+    if (user.fullname === fullname) {
+      setEditable(false);
+      return;
+    }
     const updatedUser = await updateUserApi({ ...user, fullname: fullname });
     updateUser(updatedUser);
     setFullname(fullname);
     setEditable(false);
   };
 
+  const handleDelete = async (id: number, username: string) => {
+    await deleteUserApi(id, username);
+    logout();
+    setUser(null);
+  };
+
   return (
     <div className="mx-auto w-full max-w-md">
       <Card>
         <CardHeader className="flex flex-col items-center gap-2 text-center">
-          <EditableAvatar
-            fallback={user.username.charAt(0).toUpperCase()}
-            src={user.imageUrl ?? undefined}
-            alt={user.username}
-          />
+          <EditableAvatar fallback={user.username.charAt(0).toUpperCase()} alt={user.username} />
           <CardTitle>{user.username}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
@@ -82,6 +91,12 @@ export default function MyProfile({ user }: Readonly<MyProfileProps>) {
             </div>
           )}
         </CardContent>
+        <CardFooter className="flex justify-end">
+          <ConfirmDeleteModal
+            username={user.username}
+            onConfirm={() => handleDelete(user.id, user.username)}
+          />
+        </CardFooter>
       </Card>
     </div>
   );

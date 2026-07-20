@@ -18,19 +18,27 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public User updateUser(UserDto userDto) throws UserNotFound {
-        User user = userRepository.findById(userDto.id()).orElseThrow(() -> new UserNotFound("UserId " + userDto.id() + " is not found"));
+    public User updateUser(Long id, UserDto userDto) throws UserNotFound {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFound("UserId " + id + " is not found"));
         user.update(userDto.fullname());
         userRepository.save(user);
         return user;
     }
 
     @Transactional
-    public User updateProfilePic(UserDto userDto, MultipartFile file) throws IOException, UserNotFound {
-        User user = userRepository.findById(userDto.id()).orElseThrow(() -> new UserNotFound("UserId " + userDto.id() + " is not found"));
+    public User updateProfilePic(Long id, UserDto userDto, MultipartFile file) throws IOException, UserNotFound {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFound("UserId " + id + " is not found"));
         String url = cloudinaryService.upload(file);
         user.update(userDto.fullname(), url);
         userRepository.save(user);
         return user;
+    }
+
+    @Transactional
+    public void deleteUser(Long id, String username) throws UserNotFound {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFound("UserId " + id + " is not found"));
+        if (user.getUsername().equals(username)) {
+            userRepository.delete(user);
+        }
     }
 }
