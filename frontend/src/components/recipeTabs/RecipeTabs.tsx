@@ -24,25 +24,26 @@ export default function RecipeTabs({ appliedSearch }: RecipeTabsProps) {
 
   const [page, setPage] = useState(0);
   const [favoritesPageNum, setFavoritesPageNum] = useState(0);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
 
   useEffect(() => {
     setPage(0);
     setFavoritesPageNum(0);
-  }, [appliedSearch]);
+  }, [appliedSearch, pageSize]);
 
   const [recipesPage, loading, setRecipesPage] = useAsyncData<Page<Recipe>>(
-    (signal) => getRecipes({ page, size: PAGE_SIZE, search: appliedSearch }, signal),
-    [page, appliedSearch],
+    (signal) => getRecipes({ page, size: pageSize, search: appliedSearch }, signal),
+    [page, pageSize, appliedSearch],
   );
 
   const [favoritesPage, loadingFavorites, setFavoritesPage] = useAsyncData<Page<Recipe>>(
     (signal) =>
       getFavoriteRecipesByUserId(
-        { page: favoritesPageNum, size: PAGE_SIZE, search: appliedSearch },
+        { page: favoritesPageNum, size: pageSize, search: appliedSearch },
         signal,
       ),
-    [favoritesPageNum, appliedSearch],
+    [favoritesPageNum, pageSize, appliedSearch],
     activeTab === 'favorites',
   );
 
@@ -96,6 +97,8 @@ export default function RecipeTabs({ appliedSearch }: RecipeTabsProps) {
             appliedSearch={appliedSearch}
             onSelectRecipe={setSelectedRecipeId}
             onPageChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
             onToggleFavorite={handleToggleFavorite}
             activeTab={activeTab}
           />
@@ -107,6 +110,8 @@ export default function RecipeTabs({ appliedSearch }: RecipeTabsProps) {
             appliedSearch={appliedSearch}
             onSelectRecipe={setSelectedRecipeId}
             onPageChange={setFavoritesPageNum}
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
             onToggleFavorite={handleToggleFavorite}
             activeTab={activeTab}
           />

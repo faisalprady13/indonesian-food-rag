@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
-import { Star } from 'lucide-react';
+import { Settings, Star } from 'lucide-react';
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -17,7 +19,18 @@ import {
   TableRow,
 } from '@/components/ui/table.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { Label } from '@/components/ui/label.tsx';
+import { NumberField, NumberFieldGroup, NumberFieldInput } from '@/components/ui/number-field.tsx';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.tsx';
 import RecipeTableSkeleton from '@/components/skeletons/RecipeTableSkeleton.tsx';
+import { PAGE_SIZE_OPTIONS } from '@/constants/page.ts';
 
 import type { Page, Recipe, RecipeTab } from '@/types/Recipe.ts';
 
@@ -27,6 +40,8 @@ interface RecipeListProps {
   appliedSearch: string;
   onSelectRecipe: (id: number) => void;
   onPageChange: (updater: (page: number) => number) => void;
+  pageSize: number;
+  onPageSizeChange: (updater: (size: number) => number) => void;
   onToggleFavorite: (recipe: Recipe) => void;
   activeTab: RecipeTab;
 }
@@ -37,9 +52,28 @@ export default function RecipeList({
   appliedSearch,
   onSelectRecipe,
   onPageChange,
+  pageSize,
+  onPageSizeChange,
   onToggleFavorite,
   activeTab,
 }: RecipeListProps) {
+  const [pageValue, setPageValue] = useState<number | null>(null);
+
+  const totalPages = recipesPage?.totalPages ?? 0;
+
+  useEffect(() => {
+    if (recipesPage) {
+      setPageValue(recipesPage.number + 1);
+    }
+  }, [recipesPage?.number]);
+
+  const handlePageCommit = (value: number | null) => {
+    if (value === null) {
+      return;
+    }
+    onPageChange(() => value - 1);
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -47,6 +81,56 @@ export default function RecipeList({
         <CardDescription>
           {appliedSearch ? `Showing results for "${appliedSearch}"` : ''}
         </CardDescription>
+        <CardAction>
+          <Popover>
+            <PopoverTrigger
+              aria-label="Table settings"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 aria-expanded:bg-muted aria-expanded:text-foreground"
+            >
+              <Settings size={16} />
+            </PopoverTrigger>
+            <PopoverContent className="flex w-56 flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="page-size-trigger">Rows per page</Label>
+                <Select
+                  value={pageSize}
+                  disabled={loading}
+                  onValueChange={(size) => {
+                    if (!!size) {
+                      onPageSizeChange(() => size);
+                    }
+                  }}
+                >
+                  <SelectTrigger id="page-size-trigger">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAGE_SIZE_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="page-number-input">Page number</Label>
+                <NumberField
+                  value={pageValue}
+                  onValueChange={setPageValue}
+                  onValueCommitted={handlePageCommit}
+                  min={1}
+                  max={totalPages || 1}
+                  disabled={loading}
+                >
+                  <NumberFieldGroup>
+                    <NumberFieldInput id="page-number-input" />
+                  </NumberFieldGroup>
+                </NumberField>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Table>
