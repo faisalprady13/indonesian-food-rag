@@ -27,20 +27,19 @@ export default function Navbar({ user, onLogout }: Readonly<NavbarProps>) {
   const navigate = useNavigate();
 
   return (
-    <header className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6">
-      <div className="flex items-center gap-6">
-        <NavLink to="/">
-          <img src={Logo} alt="Logo" className="h-8 w-auto" />
+    <header className="grid grid-cols-3 items-center border-b border-border px-4 py-3 sm:px-6">
+      <nav className="flex items-center gap-1 justify-self-start">
+        <NavLink to="/" end className={navLinkClass}>
+          <HugeiconsIcon icon={HomeIcon} size={18} />
+          Home
         </NavLink>
-        <nav className="flex items-center gap-1">
-          <NavLink to="/" end className={navLinkClass}>
-            <HugeiconsIcon icon={HomeIcon} size={18} />
-            Home
-          </NavLink>
-        </nav>
-      </div>
+      </nav>
 
-      <div className="flex items-center gap-3">
+      <NavLink to="/" className="justify-self-center">
+        <img src={Logo} alt="Logo" className="h-12 w-auto" />
+      </NavLink>
+
+      <div className="flex items-center gap-3 justify-self-end">
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-full px-2 py-1 text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 aria-expanded:bg-muted aria-expanded:text-foreground">
             <Avatar>
