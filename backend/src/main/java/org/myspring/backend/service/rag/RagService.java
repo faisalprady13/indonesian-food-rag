@@ -16,7 +16,7 @@ import org.myspring.backend.repository.RecipeRepository;
 @RequiredArgsConstructor
 public class RagService {
 
-    private final EmbeddingService embeddingService;
+    private final EmbeddingModel embeddingModel;
 
     private final RecipeEmbeddingRepository embeddingRepository;
 
@@ -29,7 +29,7 @@ public class RagService {
         // 1. Convert question into vector
 
         float[] vector =
-                embeddingService.embed(question);
+                embeddingModel.embed(question);
 
 
         // 2. Search similar recipes
