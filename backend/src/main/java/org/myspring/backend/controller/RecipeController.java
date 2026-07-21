@@ -1,21 +1,18 @@
 package org.myspring.backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.myspring.backend.dto.request.RagRequest;
 import org.myspring.backend.dto.response.RecipeResponse;
 import org.myspring.backend.dto.response.RecipeDetailResponse;
 import org.myspring.backend.dto.response.RecipeSuggestionResponse;
+import org.myspring.backend.model.Recipe;
 import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.service.RecipeService;
+import org.myspring.backend.service.rag.RagService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,6 +22,7 @@ import java.util.List;
 public class RecipeController {
 
     private final RecipeService recipeService;
+    private final RagService ragService;
 
     @GetMapping
     public ResponseEntity<Page<RecipeResponse>> getRecipes(
@@ -86,5 +84,16 @@ public class RecipeController {
         return ResponseEntity.ok(
                 recipeService.autocomplete(query, limit)
         );
+    }
+
+    @PostMapping("/ask")
+    public List<Recipe> search(
+            @RequestBody RagRequest request
+    ) {
+
+        return ragService.retrieve(
+                request.question()
+        );
+
     }
 }
