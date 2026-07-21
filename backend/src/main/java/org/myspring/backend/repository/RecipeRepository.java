@@ -15,6 +15,4 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     Page<Recipe> findByFavoritedByUsers_Id(Long userId, Pageable pageable);
 
     Page<Recipe> findByFavoritedByUsers_IdAndTitleContainingIgnoreCase(Long userId, String title, Pageable pageable);
-
-    List<Recipe> findByIdIn(List<Long> ids);
 }

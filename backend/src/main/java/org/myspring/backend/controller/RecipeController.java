@@ -2,10 +2,10 @@ package org.myspring.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.request.RagRequest;
+import org.myspring.backend.dto.response.RecipeAskResponse;
 import org.myspring.backend.dto.response.RecipeResponse;
 import org.myspring.backend.dto.response.RecipeDetailResponse;
 import org.myspring.backend.dto.response.RecipeSuggestionResponse;
-import org.myspring.backend.model.Recipe;
 import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.service.RecipeService;
 import org.myspring.backend.service.rag.RagService;
@@ -87,7 +87,7 @@ public class RecipeController {
     }
 
     @PostMapping("/ask")
-    public List<Recipe> search(
+    public List<RecipeAskResponse> search(
             @RequestBody RagRequest request
     ) {
 
