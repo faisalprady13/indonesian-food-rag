@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { HugeiconsIcon } from '@hugeicons/react';
-import {
-  HomeIcon,
-  AiChat02Icon,
-  MenuIcon,
-  ChatAdd01Icon,
-  Settings02Icon,
-} from '@hugeicons/core-free-icons';
+import { HomeIcon, AiChat02Icon, MenuIcon, Settings02Icon } from '@hugeicons/core-free-icons';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet.tsx';
 import {
   Accordion,
@@ -44,11 +38,6 @@ export default function Menu() {
     [],
     open,
   );
-
-  function goToChat() {
-    navigate('/chat');
-    setOpen(false);
-  }
 
   function goToConversation(id: number) {
     navigate(`/chat/${id}`);
