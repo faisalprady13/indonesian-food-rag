@@ -1,102 +1,104 @@
 package org.myspring.backend.controller;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.myspring.backend.dto.UserDto;
 import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
+import org.myspring.backend.service.JwtService;
 import org.myspring.backend.service.UserService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(UserController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
     private UserService userService;
 
-    @InjectMocks
-    private UserController userController;
+    @MockitoBean
+    private JwtService jwtService;
 
     @Test
-    void updateUser_delegatesToUpdateUser_whenFileIsNull() throws IOException, UserNotFound {
-        UserDto userDto = new UserDto(1L, "New Name");
+    void updateUser_delegatesToUpdateUser_whenFileIsNotProvided() throws Exception {
         User updated = User.builder().id(1L).fullname("New Name").build();
-        when(userService.updateUser(1L, userDto)).thenReturn(updated);
+        when(userService.updateUser(eq(1L), any())).thenReturn(updated);
 
-        ResponseEntity<User> result = userController.updateUser(1L, userDto, null);
+        mockMvc.perform(multipart("/api/user/1").param("id", "1").param("fullname", "New Name")
+                        .with(req -> {
+                            req.setMethod("PUT");
+                            return req;
+                        }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fullname").value("New Name"));
 
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(result.getBody()).isEqualTo(updated);
-        verify(userService).updateUser(1L, userDto);
+        verify(userService).updateUser(eq(1L), any());
         verify(userService, never()).updateProfilePic(any(), any(), any());
     }
 
     @Test
-    void updateUser_delegatesToUpdateUser_whenFileIsEmpty() throws IOException, UserNotFound {
-        UserDto userDto = new UserDto(1L, "New Name");
-        MultipartFile emptyFile = new MockMultipartFile("file", new byte[0]);
-        User updated = User.builder().id(1L).fullname("New Name").build();
-        when(userService.updateUser(1L, userDto)).thenReturn(updated);
-
-        ResponseEntity<User> result = userController.updateUser(1L, userDto, emptyFile);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(result.getBody()).isEqualTo(updated);
-        verify(userService).updateUser(1L, userDto);
-        verify(userService, never()).updateProfilePic(any(), any(), any());
-    }
-
-    @Test
-    void updateUser_delegatesToUpdateProfilePic_whenFileProvided() throws IOException, UserNotFound {
-        UserDto userDto = new UserDto(1L, "New Name");
-        MultipartFile file = new MockMultipartFile("file", "profile.png", "image/png", "image-bytes".getBytes());
+    void updateUser_delegatesToUpdateProfilePic_whenFileProvided() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "profile.png", "image/png", "image-bytes".getBytes());
         User updated = User.builder().id(1L).fullname("New Name").imageUrl("https://example.com/profile.png").build();
-        when(userService.updateProfilePic(1L, userDto, file)).thenReturn(updated);
+        when(userService.updateProfilePic(eq(1L), any(), any())).thenReturn(updated);
 
-        ResponseEntity<User> result = userController.updateUser(1L, userDto, file);
+        mockMvc.perform(multipart("/api/user/1").file(file)
+                        .param("id", "1").param("fullname", "New Name")
+                        .with(req -> {
+                            req.setMethod("PUT");
+                            return req;
+                        }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fullname").value("New Name"))
+                .andExpect(jsonPath("$.imageUrl").value("https://example.com/profile.png"));
 
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(result.getBody()).isEqualTo(updated);
-        verify(userService).updateProfilePic(1L, userDto, file);
+        verify(userService).updateProfilePic(eq(1L), any(), any());
         verify(userService, never()).updateUser(any(), any());
     }
 
     @Test
-    void updateUser_propagatesUserNotFound_fromService() throws IOException, UserNotFound {
-        UserDto userDto = new UserDto(999L, "Ghost");
-        when(userService.updateUser(999L, userDto)).thenThrow(new UserNotFound("UserId 999 is not found"));
+    void updateUser_returnsNotFound_whenServiceThrowsUserNotFound() throws Exception {
+        when(userService.updateUser(eq(999L), any())).thenThrow(new UserNotFound("UserId 999 is not found"));
 
-        assertThrows(UserNotFound.class, () -> userController.updateUser(999L, userDto, null));
+        mockMvc.perform(multipart("/api/user/999").param("id", "999").param("fullname", "Ghost")
+                        .with(req -> {
+                            req.setMethod("PUT");
+                            return req;
+                        }))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    void deleteUser_delegatesToService_andReturnsOk() throws UserNotFound {
-        ResponseEntity<Void> result = userController.deleteUser(1L, "johndoe");
+    void deleteUser_delegatesToServiceAndReturnsOk() throws Exception {
+        mockMvc.perform(delete("/api/user/1/johndoe"))
+                .andExpect(status().isOk());
 
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(userService).deleteUser(1L, "johndoe");
     }
 
     @Test
-    void deleteUser_propagatesUserNotFound_fromService() throws UserNotFound {
+    void deleteUser_returnsNotFound_whenServiceThrowsUserNotFound() throws Exception {
         doThrow(new UserNotFound("UserId 999 is not found")).when(userService).deleteUser(999L, "ghost");
 
-        assertThrows(UserNotFound.class, () -> userController.deleteUser(999L, "ghost"));
+        mockMvc.perform(delete("/api/user/999/ghost"))
+                .andExpect(status().isNotFound());
     }
 }
