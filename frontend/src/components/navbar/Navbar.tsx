@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from '@hugeicons/react';
-import { HomeIcon, UserIcon, LogoutIcon } from '@hugeicons/core-free-icons';
+import { UserIcon, LogoutIcon } from '@hugeicons/core-free-icons';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx';
 import {
@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
+import Menu from './menu/Menu.tsx';
 import type { CurrentUser } from '@/lib/api.ts';
 import Logo from '@/assets/logo.webp';
 
@@ -16,24 +17,12 @@ type NavbarProps = {
   onLogout: () => void;
 };
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
-    isActive
-      ? 'bg-muted text-foreground'
-      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-  }`;
-
 export default function Navbar({ user, onLogout }: Readonly<NavbarProps>) {
   const navigate = useNavigate();
 
   return (
-    <header className="grid grid-cols-3 items-center border-b border-border px-4 py-3 sm:px-6">
-      <nav className="flex items-center gap-1 justify-self-start">
-        <NavLink to="/" end className={navLinkClass}>
-          <HugeiconsIcon icon={HomeIcon} size={18} />
-          Home
-        </NavLink>
-      </nav>
+    <header className="sticky top-0 z-40 grid grid-cols-3 items-center border-b border-border bg-background px-4 py-3 sm:px-6">
+      <Menu />
 
       <NavLink to="/" className="justify-self-center">
         <img src={Logo} alt="Logo" className="h-12 w-auto" />

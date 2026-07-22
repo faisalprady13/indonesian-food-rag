@@ -3,12 +3,13 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoginForm } from '@/pages/auth/login-form.tsx';
 import { SignupForm } from '@/pages/auth/signup-form.tsx';
 import MyProfile from '@/pages/profile/my-profile.tsx';
+import Chat from '@/pages/chat/chat.tsx';
 import Home from '@/pages/Home.tsx';
 import AppLayout from '@/layout/AppLayout.tsx';
 import { useEffect } from 'react';
-import ProtectedRoute from './components/protectedRoute/ProtectedRoute.tsx';
+import ProtectedRoute from '@/components/protectedRoute/ProtectedRoute.tsx';
 import { getMe, setToken, logout } from '@/lib/api';
-import { useAppStore } from './store/appStore.ts';
+import { useAppStore } from '@/store/appStore.ts';
 
 function App() {
   const user = useAppStore((state) => state.user);
@@ -65,6 +66,8 @@ function App() {
         <Route element={<AppLayout user={user!} onLogout={handleLogout} />}>
           <Route index element={<Home />} />
           <Route path="/profile" element={<MyProfile user={user!} />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/chat/:conversationId" element={<Chat />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
