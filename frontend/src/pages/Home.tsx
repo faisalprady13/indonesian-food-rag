@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Cancel01Icon, Search01Icon } from '@hugeicons/core-free-icons';
+import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input.tsx';
 import RecipeTabs from '@/components/recipeTabs/RecipeTabs.tsx';
 import { autocompleteRecipes } from '@/lib/api.ts';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts';
 
 import type { RecipeSuggestion } from '@/types/Recipe.ts';
 
@@ -12,7 +14,6 @@ import { DEBOUNCE_300_MS } from '@/constants/debounce.ts';
 export default function Home() {
   const [searchInput, setSearchInput] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
-  const [suggestions, setSuggestions] = useState<RecipeSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const searchBoxRef = useRef<HTMLDivElement>(null);
@@ -27,33 +28,13 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const query = searchInput.trim();
+  const debouncedSearch = useDebouncedValue(searchInput, DEBOUNCE_300_MS).trim();
 
-    if (query.length < 3) {
-      setSuggestions([]);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    const timeout = setTimeout(() => {
-      autocompleteRecipes(query, 8, controller.signal)
-        .then((results) => {
-          setSuggestions(results);
-        })
-        .catch((error) => {
-          if (error.name !== 'CanceledError') {
-            console.error(error);
-          }
-        });
-    }, DEBOUNCE_300_MS);
-
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [searchInput]);
+  const { data: suggestions = [] } = useQuery({
+    queryKey: ['recipes', 'autocomplete', debouncedSearch],
+    queryFn: ({ signal }) => autocompleteRecipes(debouncedSearch, 8, signal),
+    enabled: debouncedSearch.length >= 3,
+  });
 
   function applySearch(value: string) {
     setAppliedSearch(value.trim());

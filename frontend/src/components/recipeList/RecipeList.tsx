@@ -67,13 +67,13 @@ function getPageNumbers(current: number, total: number): (number | 'ellipsis')[]
 }
 
 interface RecipeListProps {
-  recipesPage: Page<Recipe> | null;
+  recipesPage: Page<Recipe>;
   loading: boolean;
   appliedSearch: string;
   onSelectRecipe: (id: number) => void;
   onPageChange: (updater: (page: number) => number) => void;
   pageSize: number;
-  onPageSizeChange: (updater: (size: number) => number) => void;
+  onPageSizeChange: (size: number) => void;
   onToggleFavorite: (recipe: Recipe) => void;
   activeTab: RecipeTab;
 }
@@ -91,13 +91,12 @@ export default function RecipeList({
 }: RecipeListProps) {
   const [pageValue, setPageValue] = useState<number | null>(null);
 
-  const totalPages = recipesPage?.totalPages ?? 0;
+  const totalPages = recipesPage.totalPages;
 
   useEffect(() => {
-    if (recipesPage) {
-      setPageValue(recipesPage.number + 1);
-    }
-  }, [recipesPage?.number]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPageValue(recipesPage.number + 1);
+  }, [recipesPage.number]);
 
   const handlePageCommit = (value: number | null) => {
     if (value === null) {
@@ -128,8 +127,8 @@ export default function RecipeList({
                   value={pageSize}
                   disabled={loading}
                   onValueChange={(size) => {
-                    if (!!size) {
-                      onPageSizeChange(() => size);
+                    if (size) {
+                      onPageSizeChange(size);
                     }
                   }}
                 >
@@ -183,8 +182,8 @@ export default function RecipeList({
           </TableHeader>
           <TableBody>
             {loading ? (
-              <RecipeTableSkeleton rows={recipesPage?.size ?? 10} />
-            ) : recipesPage && recipesPage.content.length > 0 ? (
+              <RecipeTableSkeleton rows={recipesPage.size} />
+            ) : recipesPage.content.length > 0 ? (
               recipesPage.content.map((recipe) => (
                 <TableRow
                   className="cursor-pointer text-left"
@@ -234,7 +233,7 @@ export default function RecipeList({
           </TableBody>
         </Table>
 
-        {recipesPage && recipesPage.totalElements > 0 && (
+        {recipesPage.totalElements > 0 && (
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
             <span className="text-sm text-muted-foreground">
               Page {recipesPage.number + 1} of {recipesPage.totalPages} ·{' '}

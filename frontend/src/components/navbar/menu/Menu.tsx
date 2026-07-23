@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { HomeIcon, AiChat02Icon, MenuIcon, Settings02Icon } from '@hugeicons/core-free-icons';
+import { useQuery } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet.tsx';
 import {
   Accordion,
@@ -10,9 +11,7 @@ import {
   AccordionPanel,
 } from '@/components/ui/accordion.tsx';
 import SettingsDialog from '@/components/settingsDialog/SettingsDialog.tsx';
-import { useAsyncData } from '@/hooks/useAsyncData.ts';
-import { getConversations } from '@/lib/mockChatApi.ts';
-import type { Conversation } from '@/types/Chat.ts';
+import { getConversations } from '@/lib/api';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
@@ -33,11 +32,11 @@ export default function Menu() {
   const navigate = useNavigate();
   const { conversationId } = useParams<{ conversationId: string }>();
 
-  const [conversations, loadingConversations] = useAsyncData<Conversation[]>(
-    (signal) => getConversations(signal),
-    [],
-    open,
-  );
+  const { data: conversations, isLoading: loadingConversations } = useQuery({
+    queryKey: ['chat', 'conversations'],
+    queryFn: ({ signal }) => getConversations(signal),
+    enabled: open,
+  });
 
   function goToConversation(id: number) {
     navigate(`/chat/${id}`);
@@ -67,7 +66,7 @@ export default function Menu() {
                   </NavLink>
                   <NavLink to="/chat" end className={navLinkClass} onClick={() => setOpen(false)}>
                     <HugeiconsIcon icon={AiChat02Icon} className="h-4 w-4" />
-                    Chat
+                    New Chat
                   </NavLink>
                 </nav>
               </section>

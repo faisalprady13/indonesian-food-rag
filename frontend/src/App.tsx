@@ -1,5 +1,6 @@
 import './App.css';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LoginForm } from '@/pages/auth/login-form.tsx';
 import { SignupForm } from '@/pages/auth/signup-form.tsx';
 import MyProfile from '@/pages/profile/my-profile.tsx';
@@ -14,10 +15,12 @@ import { useAppStore } from '@/store/appStore.ts';
 function App() {
   const user = useAppStore((state) => state.user);
   const setUser = useAppStore((state) => state.setUser);
+  const queryClient = useQueryClient();
 
   async function refreshUser() {
     const currentUser = await getMe();
     setUser(currentUser);
+    queryClient.setQueryData(['me'], currentUser);
     return currentUser;
   }
 
@@ -28,12 +31,17 @@ function App() {
       setToken(token);
       window.history.replaceState({}, '', window.location.pathname);
     }
-    getMe()
-      .then(setUser)
-      .catch((_) => {
-        setUser(null);
-      });
-  }, [setUser]);
+  }, []);
+
+  const { data: me, isError } = useQuery({ queryKey: ['me'], queryFn: getMe, retry: false });
+
+  useEffect(() => {
+    if (me) {
+      setUser(me);
+    } else if (isError) {
+      setUser(null);
+    }
+  }, [me, isError, setUser]);
 
   function handleLogout() {
     logout();

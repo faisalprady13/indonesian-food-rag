@@ -1,27 +1,40 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useAsyncData } from '@/hooks/useAsyncData.ts';
-import { getMessages, sendMessage } from '@/lib/mockChatApi.ts';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import BubbleMessage from '@/components/chat/BubbleMessage.tsx';
 import BubbleSpinner from '@/components/chat/BubbleSpinner.tsx';
 import MessageInputGroup from '@/components/chat/MessageInputGroup.tsx';
 import ChatSkeleton from '@/components/skeletons/ChatSkeleton.tsx';
 import type { Message as ChatMessage } from '@/types/Chat.ts';
+import { getDetailConversation, sendMessage } from '@/lib/api';
 
 export default function Chat() {
   const { conversationId: conversationIdParam } = useParams<{ conversationId: string }>();
   const conversationId = conversationIdParam ? Number(conversationIdParam) : null;
 
-  const [seedMessages, loading] = useAsyncData<ChatMessage[]>(
-    (signal) => getMessages(conversationId as number, signal),
-    [conversationId],
-    conversationId !== null,
-  );
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
+  const { data: seedMessages, isLoading: loading } = useQuery({
+    queryKey: ['chat', 'messages', conversationId],
+    queryFn: ({ signal }) => getDetailConversation(conversationId as number, signal),
+    enabled: conversationId !== null,
+  });
+  //TODO: might not be working
+  const [messages, setMessages] = useState<ChatMessage[]>(seedMessages?.messages ?? []);
+  const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  const sendMutation = useMutation({
+    mutationFn: ({ content }: { content: string }) => sendMessage({ conversationId, content }),
+    onSuccess: (reply) => {
+      navigate(`/chat/${reply.conversationId}`, { replace: true });
+      setMessages((prev) => [...prev, reply]);
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+  const sending = sendMutation.isPending;
 
   useEffect(() => {
     if (conversationId === null) {
@@ -31,22 +44,16 @@ export default function Chat() {
 
   useEffect(() => {
     if (conversationId !== null && seedMessages) {
-      setMessages(seedMessages);
+      setMessages(seedMessages.messages);
     }
   }, [seedMessages, conversationId]);
-
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-    };
-  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
 
   function handleSend() {
-    const content = input.trim();
+    const content = inputRef.current?.value.trim() ?? '';
     if (!content || sending) {
       return;
     }
@@ -55,36 +62,18 @@ export default function Chat() {
       ...prev,
       {
         id: (prev.at(-1)?.id ?? 0) + 1,
-        conversationId: conversationId ?? 0,
-        role: 'user',
+        conversationId: conversationId,
+        role: 'USER',
         content,
         createdAt: new Date().toISOString(),
       },
     ]);
-    setInput('');
-    setSending(true);
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
 
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    sendMessage(conversationId ?? 0, content, controller.signal)
-      .then((reply) => {
-        if (!controller.signal.aborted) {
-          setMessages((prev) => [...prev, reply]);
-        }
-      })
-      .catch((error) => {
-        if (error.name !== 'AbortError') {
-          console.error(error);
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setSending(false);
-        }
-      });
+    sendMutation.mutate({ content });
   }
-
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto py-4">
@@ -94,8 +83,8 @@ export default function Chat() {
           <p className="text-sm text-muted-foreground">Start the conversation below.</p>
         ) : (
           <>
-            {messages.map((message) => (
-              <BubbleMessage key={message.id} message={message} />
+            {messages.map((message, i) => (
+              <BubbleMessage key={i} message={message} />
             ))}
             {sending && <BubbleSpinner />}
           </>
@@ -103,12 +92,7 @@ export default function Chat() {
         <div ref={bottomRef} />
       </div>
 
-      <MessageInputGroup
-        value={input}
-        onChange={setInput}
-        onSubmit={handleSend}
-        sending={sending}
-      />
+      <MessageInputGroup inputRef={inputRef} onSubmit={handleSend} sending={sending} />
     </div>
   );
 }

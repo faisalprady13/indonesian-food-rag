@@ -17,7 +17,7 @@ export default function RecipeDetailDialogSkeleton() {
           <Skeleton className="h-4 w-4 shrink-0" />
         </div>
         <DialogDescription>
-          <Skeleton className="h-3 w-28" />
+          <Skeleton className="inline-block h-3 w-28" as="span" />
         </DialogDescription>
       </DialogHeader>
       <div className="flex flex-col gap-4">

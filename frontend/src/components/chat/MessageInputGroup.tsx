@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { SentIcon } from '@hugeicons/core-free-icons';
 import { Loader2 } from 'lucide-react';
@@ -9,15 +10,13 @@ import {
 } from '@/components/ui/input-group.tsx';
 
 interface MessageInputGroupProps {
-  value: string;
-  onChange: (value: string) => void;
+  inputRef: RefObject<HTMLInputElement | null>;
   onSubmit: () => void;
   sending: boolean;
 }
 
 export default function MessageInputGroup({
-  value,
-  onChange,
+  inputRef,
   onSubmit,
   sending,
 }: MessageInputGroupProps) {
@@ -31,8 +30,7 @@ export default function MessageInputGroup({
     >
       <InputGroup>
         <InputGroupInput
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          ref={inputRef}
           placeholder="Type a message..."
           autoComplete="off"
           disabled={sending}
@@ -42,7 +40,7 @@ export default function MessageInputGroup({
             type="submit"
             size="icon-sm"
             variant="default"
-            disabled={!value.trim() || sending}
+            disabled={sending}
             aria-label="Send message"
           >
             {sending ? (

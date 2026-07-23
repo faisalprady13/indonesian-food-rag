@@ -3,9 +3,9 @@ package org.myspring.backend.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.myspring.backend.model.Conversation;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public record ConversationResponse(
         Long id,
         String title,
@@ -29,7 +29,7 @@ public record ConversationResponse(
         return new ConversationResponse(
                 conversation.getId(),
                 conversation.getTitle(),
-                null
+                new ArrayList<>()
         );
     }
 }

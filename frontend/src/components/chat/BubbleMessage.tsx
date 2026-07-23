@@ -8,8 +8,8 @@ interface BubbleMessageProps {
 export default function BubbleMessage({ message }: BubbleMessageProps) {
   return (
     <Bubble
-      variant={message.role === 'user' ? 'default' : 'muted'}
-      align={message.role === 'user' ? 'end' : 'start'}
+      variant={message.role === 'USER' ? 'default' : 'muted'}
+      align={message.role === 'USER' ? 'end' : 'start'}
       className="text-left"
     >
       <BubbleContent>{message.content}</BubbleContent>

@@ -7,6 +7,7 @@ import type {
   GetSelectedRecipeParams,
   GetFavoriteRecipeParams,
 } from '../types/Recipe.ts';
+import type { Conversation, Message, MessageRequest } from '@/types/Chat.ts';
 
 export interface CurrentUser {
   id: number;
@@ -147,4 +148,22 @@ export async function addFavoriteRecipe(id: number): Promise<void> {
 
 export async function removeFavoriteRecipe(id: number): Promise<void> {
   await http.delete(`/api/recipe/${id}/favorite`);
+}
+
+export async function sendMessage(messageRequest: MessageRequest): Promise<Message> {
+  const { data } = await http.post<Message>(`/api/recipe/ask`, messageRequest);
+  return data;
+}
+
+export async function getDetailConversation(
+  conversationId: number,
+  signal?: AbortSignal,
+): Promise<Conversation> {
+  const { data } = await http.get<Conversation>(`/api/conversation/${conversationId}`, { signal });
+  return data;
+}
+
+export async function getConversations(signal?: AbortSignal): Promise<Conversation[]> {
+  const { data } = await http.get<Conversation[]>(`/api/conversation`, { signal });
+  return data;
 }

@@ -23,6 +23,18 @@ export interface Page<T> {
   last: boolean;
 }
 
+export function emptyPage<T>(size: number): Page<T> {
+  return {
+    content: [],
+    number: 0,
+    size,
+    totalPages: 0,
+    totalElements: 0,
+    first: true,
+    last: true,
+  };
+}
+
 export interface GetRecipesParams {
   page?: number;
   size?: number;
