@@ -64,25 +64,20 @@ class RecipeControllerTest {
     @MockitoBean
     private JwtService jwtService;
 
-
-    private final UserPrincipal principal = createPrincipal();
-    private final Authentication auth = new TestingAuthenticationToken(principal, null);
-
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
     }
 
-    private UserPrincipal createPrincipal() {
-        User user = User.builder()
-                .id(1L)
-                .username("johndoe")
-                .build();
-
-        return new UserPrincipal(user);
-    }
-
     private RequestPostProcessor withAuth() {
+        Authentication auth = new TestingAuthenticationToken(
+                new UserPrincipal(User
+                        .builder()
+                        .id(1L)
+                        .username("johndoe")
+                        .build()
+                ), null);
+
         return request -> {
             SecurityContextHolder.getContext().setAuthentication(auth);
             return request;
@@ -100,15 +95,12 @@ class RecipeControllerTest {
         );
     }
 
-
     @Test
     void getRecipes_returnsPagedRecipes_withDefaultParams() throws Exception {
-
         Page<RecipeResponse> page =
                 new PageImpl<>(
                         List.of(recipeResponse())
                 );
-
 
         when(recipeService.getRecipes(
                 eq(0),
@@ -119,7 +111,6 @@ class RecipeControllerTest {
                 eq(1L)
         )).thenReturn(page);
 
-
         mockMvc.perform(get("/api/recipe").with(withAuth()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].title")
@@ -128,10 +119,8 @@ class RecipeControllerTest {
 
     @Test
     void addFavorite_returnsNoContent_onSuccess() throws Exception {
-
         mockMvc.perform(post("/api/recipe/2/favorite").with(withAuth()))
                 .andExpect(status().isNoContent());
-
 
         verify(recipeService)
                 .addFavorite(1L, 2L);
@@ -140,10 +129,8 @@ class RecipeControllerTest {
 
     @Test
     void removeFavorite_returnsNoContent_onSuccess() throws Exception {
-
         mockMvc.perform(delete("/api/recipe/2/favorite").with(withAuth()))
                 .andExpect(status().isNoContent());
-
 
         verify(recipeService)
                 .removeFavorite(1L, 2L);
@@ -157,7 +144,6 @@ class RecipeControllerTest {
         )
                 .when(recipeService)
                 .addFavorite(1L, 999L);
-
 
         mockMvc.perform(post("/api/recipe/999/favorite").with(withAuth()))
                 .andExpect(status().isNotFound());
