@@ -9,8 +9,13 @@ export interface Conversation {
 
 export interface Message {
   id: number;
-  conversationId: number;
+  conversationId: number | null;
   role: MessageRole;
   content: string;
   createdAt: string;
+}
+
+export interface MessageRequest {
+  conversationId: number | null;
+  content: string;
 }
