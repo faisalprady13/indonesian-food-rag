@@ -1,7 +1,7 @@
 package org.myspring.backend.dto.request;
 
 public record ChatRequest(
-        String conversationId,
-        String question
+        Long conversationId,
+        String content
 ) {
 }

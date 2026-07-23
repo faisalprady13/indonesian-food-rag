@@ -1,17 +1,34 @@
 package org.myspring.backend.service.rag;
 
+import org.myspring.backend.dto.request.ChatRequest;
+import org.myspring.backend.dto.response.ChatResponse;
+import org.myspring.backend.model.Conversation;
+import org.myspring.backend.service.ConversationService;
+import org.myspring.backend.service.MessageService;
 import org.myspring.backend.tool.RecipeTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RecipeChatService {
 
     private final ChatClient chatClient;
+    private final ConversationService conversationService;
+    private final MessageService messageService;
 
-    public RecipeChatService(ChatClient.Builder builder, RecipeTools recipeTools, ChatMemory chatMemory) {
+    public RecipeChatService(
+            ChatClient.Builder builder,
+            ConversationService conversationService,
+            MessageService messageService,
+            RecipeTools recipeTools,
+            ChatMemory chatMemory
+    ) {
+        this.conversationService = conversationService;
+        this.messageService = messageService;
+
         this.chatClient = builder
                 .defaultSystem("""
                         You are an AI cooking assistant.
@@ -81,12 +98,32 @@ public class RecipeChatService {
                 .build();
     }
 
-    public String askQuestion(String conversationId, String userQuestion) {
-        return chatClient.prompt()
+    @Transactional
+    public ChatResponse askQuestion(Long userId, ChatRequest request, String userQuestion) {
+
+        Conversation conversation = conversationService.getOrCreateConversation(
+                userId,
+                request,
+                userQuestion
+        );
+
+        String response = chatClient.prompt()
                 .user(userQuestion)
-                // Memory for conversation
-                .advisors(advisorSpec -> advisorSpec.param("chat_memory_conversation_id", conversationId))
+                .advisors(advisorSpec ->
+                        advisorSpec.param(
+                                "chat_memory_conversation_id",
+                                conversation.getId().toString()
+                        )
+                )
                 .call()
                 .content();
+
+        messageService.saveUserMessage(conversation, userQuestion);
+        messageService.saveAssistantMessage(conversation, response);
+
+        return new ChatResponse(
+                conversation.getId(),
+                response
+        );
     }
 }

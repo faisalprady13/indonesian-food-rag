@@ -87,19 +87,7 @@ public class RecipeController {
     }
 
     @PostMapping("/ask")
-    public ChatResponse search(
-            @RequestBody ChatRequest request
-    ) {
-        String conversationId = request.conversationId() != null
-                ? request.conversationId()
-                : "guest-1";
-
-        String answer = recipeChatService.askQuestion(conversationId, request.question());
-
-        return ChatResponse.builder()
-                .conversationId(conversationId)
-                .answer(answer)
-                .build();
-
+    public ChatResponse search(@AuthenticationPrincipal UserPrincipal principal, @RequestBody ChatRequest request) {
+        return recipeChatService.askQuestion(principal.user().getId(), request, request.content());
     }
 }
