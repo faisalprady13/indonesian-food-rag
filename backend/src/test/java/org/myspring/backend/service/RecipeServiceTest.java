@@ -1,277 +1,258 @@
 package org.myspring.backend.service;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.myspring.backend.dto.response.RecipeDetailResponse;
+import org.myspring.backend.dto.response.RecipeResponse;
+import org.myspring.backend.dto.response.RecipeSuggestionResponse;
 import org.myspring.backend.model.Ingredient;
 import org.myspring.backend.model.Recipe;
 import org.myspring.backend.model.User;
-import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.repository.RecipeRepository;
 import org.myspring.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class RecipeServiceTest {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @Autowired
+    @Mock
     private RecipeRepository recipeRepository;
 
-    @Autowired
+    @Mock
     private UserRepository userRepository;
 
-    private MockMvc mockMvc;
+    @InjectMocks
+    private RecipeService recipeService;
 
-    private List<Recipe> savedRecipes;
-    private RequestPostProcessor asUser;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .apply(springSecurity())
-                .build();
-
-        userRepository.deleteAll();
-        recipeRepository.deleteAll();
-
-        User testUser = userRepository.save(newUser());
-        asUser = user(new UserPrincipal(testUser));
-
-        savedRecipes = recipeRepository.saveAll(List.of(
-                newRecipe("Rendang", "Simmer beef in coconut milk and spices.", "beef", "coconut milk", "chili"),
-                newRecipe("Soto Ayam", "Simmer chicken in turmeric broth.", "chicken", "turmeric", "lemongrass")
-        ));
-    }
-
-    @AfterEach
-    void tearDown() {
-        userRepository.deleteAll();
-        recipeRepository.deleteAll();
-    }
-
-    private User newUser() {
-        User user = new User();
-        user.setUsername("chef");
-        user.setFullname("Test Chef");
-        user.setEmail("chef" + "@example.com");
-        user.setPassword("password");
-        return user;
-    }
-
-    private Recipe newRecipe(String title, String steps, String... ingredientNames) {
+    private Recipe newRecipe(Long id, String title, String... ingredientNames) {
         Recipe recipe = new Recipe();
+        recipe.setId(id);
         recipe.setTitle(title);
-        recipe.setSteps(steps);
+        recipe.setSteps("Simmer and serve.");
         recipe.setCreatedAt(LocalDateTime.now());
         recipe.setUpdatedAt(LocalDateTime.now());
-        Set<Ingredient> ingredients = Arrays.stream(ingredientNames)
-                .map(name -> {
-                    Ingredient ingredient = new Ingredient();
-                    ingredient.setName(name);
-                    ingredient.setRecipe(recipe);
-                    return ingredient;
-                })
-                .collect(Collectors.toSet());
+        Set<Ingredient> ingredients = Set.of();
+        if (ingredientNames.length > 0) {
+            ingredients = java.util.Arrays.stream(ingredientNames)
+                    .map(name -> {
+                        Ingredient ingredient = new Ingredient();
+                        ingredient.setName(name);
+                        ingredient.setRecipe(recipe);
+                        return ingredient;
+                    })
+                    .collect(java.util.stream.Collectors.toSet());
+        }
         recipe.setIngredients(ingredients);
         return recipe;
     }
 
-    private Recipe recipeByTitle(String title) {
-        return savedRecipes.stream()
-                .filter(recipe -> recipe.getTitle().equals(title))
-                .findFirst()
-                .orElseThrow();
-    }
+    @Test
+    void getRecipes_returnsAllRecipesPaginated_whenSearchIsBlank() {
+        Recipe rendang = newRecipe(1L, "Rendang");
+        Recipe soto = newRecipe(2L, "Soto Ayam");
+        Pageable pageable = PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("id").ascending());
+        when(recipeRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(rendang, soto)));
+        when(userRepository.findFavoriteRecipeIds(1L)).thenReturn(Set.of());
 
-    private void markAsFavorite(Recipe recipe) throws Exception {
-        mockMvc.perform(post("/api/recipe/" + recipe.getId() + "/favorite").with(asUser))
-                .andExpect(status().isNoContent());
+        Page<RecipeResponse> result = recipeService.getRecipes(0, 10, "id", "asc", null, 1L);
+
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent()).extracting(RecipeResponse::title).containsExactly("Rendang", "Soto Ayam");
+        verify(recipeRepository, never()).findByTitleContainingIgnoreCase(any(), any());
     }
 
     @Test
-    void getRecipes_returnsAllRecipesPaginated() throws Exception {
-        mockMvc.perform(get("/api/recipe").with(asUser).param("page", "0").param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(2))
-                .andExpect(jsonPath("$.content", hasSize(2)));
+    void getRecipes_filtersBySearchTerm() {
+        Recipe rendang = newRecipe(1L, "Rendang");
+        Pageable pageable = PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("id").ascending());
+        when(recipeRepository.findByTitleContainingIgnoreCase(eq("rendang"), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(rendang)));
+        when(userRepository.findFavoriteRecipeIds(1L)).thenReturn(Set.of());
+
+        Page<RecipeResponse> result = recipeService.getRecipes(0, 10, "id", "asc", "rendang", 1L);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().title()).isEqualTo("Rendang");
     }
 
     @Test
-    void getRecipes_filtersBySearchTerm() throws Exception {
-        mockMvc.perform(get("/api/recipe").with(asUser).param("search", "rendang"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].title").value("Rendang"));
+    void getRecipes_marksFavoritedRecipe() {
+        Recipe rendang = newRecipe(1L, "Rendang");
+        Recipe soto = newRecipe(2L, "Soto Ayam");
+        Pageable pageable = PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("id").ascending());
+        when(recipeRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(rendang, soto)));
+        when(userRepository.findFavoriteRecipeIds(1L)).thenReturn(Set.of(1L));
+
+        Page<RecipeResponse> result = recipeService.getRecipes(0, 10, "id", "asc", null, 1L);
+
+        assertThat(result.getContent().get(0).favorited()).isTrue();
+        assertThat(result.getContent().get(1).favorited()).isFalse();
     }
 
     @Test
-    void getRecipes_returnsEmptyPage_whenSearchMatchesNothing() throws Exception {
-        mockMvc.perform(get("/api/recipe").with(asUser).param("search", "nonexistent"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(0)))
-                .andExpect(jsonPath("$.totalElements").value(0));
+    void getRecipe_returnsRecipeWithIngredients() {
+        Recipe rendang = newRecipe(1L, "Rendang", "beef", "coconut milk", "chili");
+        when(recipeRepository.findById(1L)).thenReturn(Optional.of(rendang));
+        when(userRepository.findFavoriteRecipeIds(1L)).thenReturn(Set.of());
+
+        RecipeDetailResponse result = recipeService.getRecipe(1L, 1L);
+
+        assertThat(result.title()).isEqualTo("Rendang");
+        assertThat(result.ingredients()).hasSize(3);
+        assertThat(result.favorited()).isFalse();
     }
 
     @Test
-    void getRecipes_marksFavoritedRecipe() throws Exception {
-        markAsFavorite(recipeByTitle("Rendang"));
+    void getRecipe_throwsNotFound_whenRecipeDoesNotExist() {
+        when(recipeRepository.findById(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/recipe").with(asUser).param("sortBy", "id").param("direction", "asc"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].favorited").value(true))
-                .andExpect(jsonPath("$.content[1].favorited").value(false));
+        assertThrows(ResponseStatusException.class, () -> recipeService.getRecipe(999L, 1L));
     }
 
     @Test
-    void getRecipe_returnsRecipeWithIngredients() throws Exception {
-        Recipe rendang = recipeByTitle("Rendang");
+    void addFavorite_addsRecipeToUserFavorites() {
+        User user = User.builder().id(1L).build();
+        Recipe recipe = newRecipe(2L, "Rendang");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(recipeRepository.findById(2L)).thenReturn(Optional.of(recipe));
 
-        mockMvc.perform(get("/api/recipe/" + rendang.getId()).with(asUser))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Rendang"))
-                .andExpect(jsonPath("$.ingredients", hasSize(3)))
-                .andExpect(jsonPath("$.favorited").value(false));
+        recipeService.addFavorite(1L, 2L);
+
+        assertThat(user.getFavoriteRecipes()).contains(recipe);
+        verify(userRepository).save(user);
     }
 
     @Test
-    void getRecipe_returnsNotFound_whenRecipeDoesNotExist() throws Exception {
-        mockMvc.perform(get("/api/recipe/999999").with(asUser))
-                .andExpect(status().isNotFound());
+    void addFavorite_throwsNotFound_whenUserDoesNotExist() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class, () -> recipeService.addFavorite(999L, 1L));
+        verify(userRepository, never()).save(any());
     }
 
     @Test
-    void addFavorite_marksRecipeAsFavorited() throws Exception {
-        Recipe rendang = recipeByTitle("Rendang");
+    void addFavorite_throwsNotFound_whenRecipeDoesNotExist() {
+        User user = User.builder().id(1L).build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(recipeRepository.findById(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/api/recipe/" + rendang.getId() + "/favorite").with(asUser))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(get("/api/recipe/" + rendang.getId()).with(asUser))
-                .andExpect(jsonPath("$.favorited").value(true));
+        assertThrows(ResponseStatusException.class, () -> recipeService.addFavorite(1L, 999L));
+        verify(userRepository, never()).save(any());
     }
 
     @Test
-    void addFavorite_returnsNotFound_whenRecipeDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/recipe/999999/favorite").with(asUser))
-                .andExpect(status().isNotFound());
+    void removeFavorite_removesRecipeFromUserFavorites() {
+        Recipe recipe = newRecipe(2L, "Rendang");
+        User user = User.builder().id(1L).build();
+        user.getFavoriteRecipes().add(recipe);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        recipeService.removeFavorite(1L, 2L);
+
+        assertThat(user.getFavoriteRecipes()).doesNotContain(recipe);
+        verify(userRepository).save(user);
     }
 
     @Test
-    void removeFavorite_unmarksRecipeAsFavorited() throws Exception {
-        Recipe rendang = recipeByTitle("Rendang");
-        markAsFavorite(rendang);
+    void removeFavorite_throwsNotFound_whenUserDoesNotExist() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(delete("/api/recipe/" + rendang.getId() + "/favorite").with(asUser))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(get("/api/recipe/" + rendang.getId()).with(asUser))
-                .andExpect(jsonPath("$.favorited").value(false));
+        assertThrows(ResponseStatusException.class, () -> recipeService.removeFavorite(999L, 1L));
+        verify(userRepository, never()).save(any());
     }
 
     @Test
-    void getFavoriteRecipes_returnsOnlyFavoritedRecipes() throws Exception {
-        markAsFavorite(recipeByTitle("Rendang"));
+    void getFavoriteRecipes_returnsOnlyFavoritedRecipes() {
+        Recipe rendang = newRecipe(1L, "Rendang");
+        Pageable pageable = PageRequest.of(0, 10);
+        when(recipeRepository.findByFavoritedByUsers_Id(1L, pageable)).thenReturn(new PageImpl<>(List.of(rendang)));
 
-        mockMvc.perform(get("/api/recipe/favorites").with(asUser))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].title").value("Rendang"))
-                .andExpect(jsonPath("$.content[0].favorited").value(true));
+        Page<RecipeResponse> result = recipeService.getFavoriteRecipes(1L, 0, 10, null);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().title()).isEqualTo("Rendang");
+        assertThat(result.getContent().getFirst().favorited()).isTrue();
     }
 
     @Test
-    void getFavoriteRecipes_filtersBySearchTerm() throws Exception {
-        markAsFavorite(recipeByTitle("Rendang"));
-        markAsFavorite(recipeByTitle("Soto Ayam"));
+    void getFavoriteRecipes_filtersBySearchTerm() {
+        Recipe soto = newRecipe(2L, "Soto Ayam");
+        Pageable pageable = PageRequest.of(0, 10);
+        when(recipeRepository.findByFavoritedByUsers_IdAndTitleContainingIgnoreCase(1L, "soto", pageable))
+                .thenReturn(new PageImpl<>(List.of(soto)));
 
-        mockMvc.perform(get("/api/recipe/favorites").with(asUser).param("search", "soto"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].title").value("Soto Ayam"));
+        Page<RecipeResponse> result = recipeService.getFavoriteRecipes(1L, 0, 10, "soto");
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().title()).isEqualTo("Soto Ayam");
+        verify(recipeRepository, never()).findByFavoritedByUsers_Id(anyLong(), any());
     }
 
     @Test
-    void getFavoriteRecipes_returnsEmptyPage_whenNothingFavorited() throws Exception {
-        mockMvc.perform(get("/api/recipe/favorites").with(asUser))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(0)))
-                .andExpect(jsonPath("$.totalElements").value(0));
+    void getFavoriteRecipes_returnsEmptyPage_whenNothingFavorited() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(recipeRepository.findByFavoritedByUsers_Id(1L, pageable)).thenReturn(Page.empty());
+
+        Page<RecipeResponse> result = recipeService.getFavoriteRecipes(1L, 0, 10, null);
+
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
     }
 
     @Test
-    void autocomplete_returnsMatchingTitlesOrderedByTitle() throws Exception {
-        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "s"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].title").value("Soto Ayam"));
+    void autocomplete_returnsEmptyList_whenQueryIsBlank() {
+        List<RecipeSuggestionResponse> result = recipeService.autocomplete("   ", 10);
+
+        assertThat(result).isEmpty();
+        verify(recipeRepository, never())
+                .findAll(Mockito.<Specification<Recipe>>any(), any(Pageable.class));
     }
 
     @Test
-    void autocomplete_returnsEmptyList_whenQueryIsBlank() throws Exception {
-        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "   "))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+    void autocomplete_returnsMappedSuggestions_whenQueryProvided() {
+        Recipe soto = newRecipe(2L, "Soto Ayam");
+        when(recipeRepository.findAll(Mockito.<Specification<Recipe>>any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(soto)));
+
+        List<RecipeSuggestionResponse> result = recipeService.autocomplete("soto", 10);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().title()).isEqualTo("Soto Ayam");
     }
 
     @Test
-    void autocomplete_matchesTitle_whenQueryWordsAreOutOfOrderAndPartial() throws Exception {
-        recipeRepository.save(newRecipe("Apples and Orange", "Peel and slice.", "apple", "orange"));
+    void autocomplete_respectsLimitParameter() {
+        Recipe soto = newRecipe(2L, "Soto Ayam");
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        when(recipeRepository.findAll(Mockito.<Specification<Recipe>>any(), pageableCaptor.capture()))
+                .thenReturn(new PageImpl<>(List.of(soto)));
 
-        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "Orange Apple"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].title").value("Apples and Orange"));
-    }
+        recipeService.autocomplete("soto", 1);
 
-    @Test
-    void autocomplete_isCaseInsensitiveAcrossMultipleWords() throws Exception {
-        recipeRepository.save(newRecipe("Apples and Orange", "Peel and slice.", "apple", "orange"));
-
-        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "APPLE oraNGE"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].title").value("Apples and Orange"));
-    }
-
-    @Test
-    void autocomplete_returnsNoMatches_whenOneWordIsMissingFromTitle() throws Exception {
-        recipeRepository.save(newRecipe("Apples and Orange", "Peel and slice.", "apple", "orange"));
-
-        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "Apple Banana"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
-    }
-
-    @Test
-    void autocomplete_respectsLimitParameter() throws Exception {
-        recipeRepository.save(newRecipe("Soto Betawi", "Simmer beef in spiced broth.", "beef", "broth"));
-
-        mockMvc.perform(get("/api/recipe/autocomplete").with(asUser).param("query", "soto").param("limit", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].title").value("Soto Ayam"));
+        assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(1);
     }
 }

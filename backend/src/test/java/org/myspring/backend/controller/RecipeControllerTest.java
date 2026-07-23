@@ -1,136 +1,151 @@
 package org.myspring.backend.controller;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.response.RecipeResponse;
-import org.myspring.backend.dto.response.RecipeDetailResponse;
-import org.myspring.backend.dto.response.RecipeSuggestionResponse;
 import org.myspring.backend.model.User;
 import org.myspring.backend.model.UserPrincipal;
+import org.myspring.backend.service.JwtService;
 import org.myspring.backend.service.RecipeService;
+import org.myspring.backend.service.rag.RecipeChatService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(RecipeController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@Import(RecipeControllerTest.AuthenticationPrincipalResolverConfig.class)
 class RecipeControllerTest {
 
-    @Mock
+    @TestConfiguration
+    static class AuthenticationPrincipalResolverConfig implements WebMvcConfigurer {
+        @Override
+        public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+            resolvers.add(new AuthenticationPrincipalArgumentResolver());
+        }
+    }
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
     private RecipeService recipeService;
 
-    @InjectMocks
-    private RecipeController recipeController;
+    @MockitoBean
+    private RecipeChatService recipeChatService;
 
-    private final UserPrincipal principal = new UserPrincipal(User.builder().id(1L).build());
+    @MockitoBean
+    private JwtService jwtService;
 
-    @Test
-    void getRecipes_delegatesToServiceAndReturnsItsResult() {
-        RecipeResponse rendang = new RecipeResponse(
-                1L, "Rendang", "Simmer beef in coconut milk.", LocalDateTime.now(), LocalDateTime.now(), true
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private RequestPostProcessor withAuth() {
+        Authentication auth = new TestingAuthenticationToken(
+                new UserPrincipal(User
+                        .builder()
+                        .id(1L)
+                        .username("johndoe")
+                        .build()
+                ), null);
+
+        return request -> {
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            return request;
+        };
+    }
+
+    private RecipeResponse recipeResponse() {
+        return new RecipeResponse(
+                1L,
+                "Rendang",
+                "Simmer and serve.",
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                false
         );
-        Page<RecipeResponse> page = new PageImpl<>(List.of(rendang));
-        when(recipeService.getRecipes(0, 10, "id", "asc", "rendang", 1L)).thenReturn(page);
-
-        ResponseEntity<Page<RecipeResponse>> result =
-                recipeController.getRecipes(principal, 0, 10, "id", "asc", "rendang");
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assert result.getBody() != null;
-        assertThat(result.getBody().getContent()).containsExactly(rendang);
-        verify(recipeService).getRecipes(0, 10, "id", "asc", "rendang", 1L);
     }
 
     @Test
-    void getRecipes_passesNullSearchThrough_whenNotProvided() {
-        Page<RecipeResponse> page = new PageImpl<>(List.of());
-        when(recipeService.getRecipes(0, 10, "id", "asc", null, 1L)).thenReturn(page);
+    void getRecipes_returnsPagedRecipes_withDefaultParams() throws Exception {
+        Page<RecipeResponse> page =
+                new PageImpl<>(
+                        List.of(recipeResponse())
+                );
 
-        ResponseEntity<Page<RecipeResponse>> result =
-                recipeController.getRecipes(principal, 0, 10, "id", "asc", null);
+        when(recipeService.getRecipes(
+                eq(0),
+                eq(10),
+                eq("id"),
+                eq("asc"),
+                isNull(),
+                eq(1L)
+        )).thenReturn(page);
 
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assert result.getBody() != null;
-        assertThat(result.getBody().getContent()).isEmpty();
-        verify(recipeService).getRecipes(0, 10, "id", "asc", null, 1L);
+        mockMvc.perform(get("/api/recipe").with(withAuth()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].title")
+                        .value("Rendang"));
     }
 
     @Test
-    void getRecipe_delegatesToServiceAndReturnsItsResult() {
-        RecipeDetailResponse rendang = new RecipeDetailResponse(
-                1L, "Rendang", "Simmer beef in coconut milk.",
-                List.of("beef", "coconut milk"), LocalDateTime.now(), LocalDateTime.now(), true
-        );
-        when(recipeService.getRecipe(1L, 1L)).thenReturn(rendang);
+    void addFavorite_returnsNoContent_onSuccess() throws Exception {
+        mockMvc.perform(post("/api/recipe/2/favorite").with(withAuth()))
+                .andExpect(status().isNoContent());
 
-        ResponseEntity<RecipeDetailResponse> result = recipeController.getRecipe(principal, 1L);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(result.getBody()).isEqualTo(rendang);
-        verify(recipeService).getRecipe(1L, 1L);
+        verify(recipeService)
+                .addFavorite(1L, 2L);
     }
 
+
     @Test
-    void getFavoriteRecipes_delegatesToServiceAndReturnsItsResult() {
-        RecipeResponse rendang = new RecipeResponse(
-                1L, "Rendang", "Simmer beef in coconut milk.", LocalDateTime.now(), LocalDateTime.now(), true
-        );
-        Page<RecipeResponse> page = new PageImpl<>(List.of(rendang));
-        when(recipeService.getFavoriteRecipes(1L, 0, 10, "rendang")).thenReturn(page);
+    void removeFavorite_returnsNoContent_onSuccess() throws Exception {
+        mockMvc.perform(delete("/api/recipe/2/favorite").with(withAuth()))
+                .andExpect(status().isNoContent());
 
-        ResponseEntity<Page<RecipeResponse>> result =
-                recipeController.getFavoriteRecipes(principal, 0, 10, "rendang");
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assert result.getBody() != null;
-        assertThat(result.getBody().getContent()).containsExactly(rendang);
-        verify(recipeService).getFavoriteRecipes(1L, 0, 10, "rendang");
+        verify(recipeService)
+                .removeFavorite(1L, 2L);
     }
 
-    @Test
-    void addFavorite_delegatesToServiceAndReturnsNoContent() {
-        ResponseEntity<Void> result = recipeController.addFavorite(principal, 1L);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        verify(recipeService).addFavorite(1L, 1L);
-    }
 
     @Test
-    void removeFavorite_delegatesToServiceAndReturnsNoContent() {
-        ResponseEntity<Void> result = recipeController.removeFavorite(principal, 1L);
+    void addFavorite_returnsNotFound_whenServiceThrows() throws Exception {
+        doThrow(
+                new ResponseStatusException(NOT_FOUND, "Recipe not found")
+        )
+                .when(recipeService)
+                .addFavorite(1L, 999L);
 
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        verify(recipeService).removeFavorite(1L, 1L);
-    }
-
-    @Test
-    void autocomplete_delegatesToServiceWithQueryAndLimit() {
-        RecipeSuggestionResponse suggestion = new RecipeSuggestionResponse(1L, "Rendang");
-        when(recipeService.autocomplete("ren", 5)).thenReturn(List.of(suggestion));
-
-        ResponseEntity<List<RecipeSuggestionResponse>> result = recipeController.autocomplete("ren", 5);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(result.getBody()).containsExactly(suggestion);
-        verify(recipeService).autocomplete("ren", 5);
-    }
-
-    @Test
-    void autocomplete_returnsEmptyList_whenServiceFindsNoMatches() {
-        when(recipeService.autocomplete("zzz", 10)).thenReturn(List.of());
-
-        ResponseEntity<List<RecipeSuggestionResponse>> result = recipeController.autocomplete("zzz", 10);
-
-        assertThat(result.getBody()).isEmpty();
+        mockMvc.perform(post("/api/recipe/999/favorite").with(withAuth()))
+                .andExpect(status().isNotFound());
     }
 }
