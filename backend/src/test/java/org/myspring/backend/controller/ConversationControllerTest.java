@@ -7,12 +7,24 @@ import org.myspring.backend.enums.MessageRole;
 import org.myspring.backend.model.User;
 import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.service.ConversationService;
+import org.myspring.backend.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,13 +38,42 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ConversationController.class)
+@Import({
+        ConversationControllerTest.AuthenticationPrincipalResolverConfig.class,
+        ConversationControllerTest.TestSecurityConfig.class
+})
 class ConversationControllerTest {
+
+    @TestConfiguration
+    static class AuthenticationPrincipalResolverConfig implements WebMvcConfigurer {
+        @Override
+        public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+            resolvers.add(new AuthenticationPrincipalArgumentResolver());
+        }
+    }
+
+    @TestConfiguration
+    @EnableWebSecurity
+    static class TestSecurityConfig {
+        @Bean
+        SecurityFilterChain securityFilterChain(HttpSecurity http) {
+            http
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                    .exceptionHandling(exceptions -> exceptions
+                            .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+            return http.build();
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
     private ConversationService conversationService;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     private static final Long USER_ID = 1L;
 
