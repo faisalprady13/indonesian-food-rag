@@ -2,6 +2,7 @@ package org.myspring.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.UserDto;
+import org.myspring.backend.dto.response.UserResponse;
 import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
 import org.myspring.backend.service.UserService;
@@ -18,7 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(
+    public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
             @ModelAttribute UserDto userDto,
             @RequestPart(name = "file", required = false) MultipartFile file
@@ -29,7 +30,7 @@ public class UserController {
         } else {
             user = userService.updateProfilePic(id, userDto, file);
         }
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(UserResponse.fromUser(user));
     }
 
     @DeleteMapping("/{id}/{username}")
