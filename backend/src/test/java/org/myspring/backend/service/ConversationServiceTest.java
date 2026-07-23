@@ -66,7 +66,7 @@ class ConversationServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().id()).isEqualTo(10L);
         assertThat(result.getFirst().title()).isEqualTo("Rendang Chat");
-        assertThat(result.getFirst().messages()).isNull();
+        assertThat(result.getFirst().messages()).isEmpty();
     }
 
     @Test
