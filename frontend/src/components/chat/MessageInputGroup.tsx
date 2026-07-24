@@ -17,39 +17,42 @@ interface MessageInputGroupProps {
 
 export default function MessageInputGroup({ inputRef, onSubmit, sending }: MessageInputGroupProps) {
   return (
-    <div className={'MessageInputGroup fixed p-8 bottom-0 left-0 w-full'}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          onSubmit();
-        }}
-      >
-        <div>
-          <InputGroup className={'bg-background w-full max-w-md m-auto'}>
+    <>
+      <div className="fixed bottom-0 left-0 w-full h-15 bg-black/80"></div>
+      <div className={'MessageInputGroup fixed pb-8 bottom-0 left-0 w-full px-6'}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSubmit();
+          }}
+        >
+          <InputGroup className={'w-full max-w-3xl m-auto dark:bg-muted rounded-full'}>
             <InputGroupInput
               ref={inputRef}
               placeholder="Type a message..."
               autoComplete="off"
               disabled={sending}
+              className="w-full"
             />
             <InputGroupAddon align="inline-end">
               <InputGroupButton
                 type="submit"
-                size="icon-sm"
+                size="icon-lg"
                 variant="default"
                 disabled={sending}
                 aria-label="Send message"
+                className="rounded-full"
               >
                 {sending ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2 size={20} className="animate-spin" />
                 ) : (
-                  <HugeiconsIcon icon={SentIcon} size={16} />
+                  <HugeiconsIcon icon={SentIcon} size={20} />
                 )}
               </InputGroupButton>
             </InputGroupAddon>
           </InputGroup>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
   );
 }
