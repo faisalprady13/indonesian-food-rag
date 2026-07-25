@@ -1,103 +1,103 @@
 import ConfirmDeleteModal from '@/components/confirmDeleteModal/ConfirmDeleteModal';
-import {EditableAvatar} from '@/components/editableAvatar/editableAvatar';
-import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardFooter, CardHeader, CardTitle} from '@/components/ui/card.tsx';
-import {Input} from '@/components/ui/input';
-import {Separator} from '@/components/ui/separator.tsx';
-import {deleteUserApi, logout, updateUserApi, type CurrentUser} from '@/lib/api.ts';
-import {useAppStore} from '@/store/appStore';
-import {Check, Pen} from 'lucide-react';
-import {useState} from 'react';
+import { EditableAvatar } from '@/components/editableAvatar/editableAvatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card.tsx';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator.tsx';
+import { deleteUserApi, logout, updateUserApi, type CurrentUser } from '@/lib/api.ts';
+import { useAppStore } from '@/store/appStore';
+import { Check, Pen } from 'lucide-react';
+import { useState } from 'react';
 
 type MyProfileProps = {
-    user: CurrentUser;
+  user: CurrentUser;
 };
 
-export default function MyProfile({user}: Readonly<MyProfileProps>) {
-    const setUser = useAppStore((state) => state.setUser);
+export default function MyProfile({ user }: Readonly<MyProfileProps>) {
+  const setUser = useAppStore((state) => state.setUser);
 
-    const [editable, setEditable] = useState(false);
-    const [fullname, setFullname] = useState(user.fullname);
+  const [editable, setEditable] = useState(false);
+  const [fullname, setFullname] = useState(user.fullname);
 
-    const updateUser = useAppStore((state) => state.updateUser);
+  const updateUser = useAppStore((state) => state.updateUser);
 
-    const handleSubmit = async () => {
-        if (user.fullname === fullname) {
-            setEditable(false);
-            return;
-        }
-        const updatedUser = await updateUserApi({...user, fullname: fullname});
-        updateUser(updatedUser);
-        setFullname(fullname);
-        setEditable(false);
-    };
+  const handleSubmit = async () => {
+    if (user.fullname === fullname) {
+      setEditable(false);
+      return;
+    }
+    const updatedUser = await updateUserApi({ ...user, fullname: fullname });
+    updateUser(updatedUser);
+    setFullname(fullname);
+    setEditable(false);
+  };
 
-    const handleDelete = async (id: number, username: string) => {
-        await deleteUserApi(id, username);
-        logout();
-        setUser(null);
-    };
+  const handleDelete = async (id: number, username: string) => {
+    await deleteUserApi(id, username);
+    logout();
+    setUser(null);
+  };
 
-    return (
-        <div className="mx-auto w-full max-w-md mt-18 p-6">
-            <Card>
-                <CardHeader className="flex flex-col items-center gap-2 text-center">
-                    <EditableAvatar fallback={user.username.charAt(0).toUpperCase()} alt={user.username}/>
-                    <CardTitle>{user.username}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3">
-                    <Separator/>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Email</span>
-                        <span className="font-medium">{user.email}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Full Name</span>
-                        <div className="flex items-center gap-2">
-                            {editable ? (
-                                <Input
-                                    value={fullname}
-                                    onChange={(e) => setFullname(e.target.value)}
-                                    className="w-full max-w-30  max-h-6"
-                                />
-                            ) : (
-                                <span className="font-medium">{user.fullname}</span>
-                            )}
-                            {editable ? (
-                                <Button
-                                    variant="positive"
-                                    size="icon"
-                                    className="h-8 w-8 p-0 bg-green-500"
-                                    onClick={handleSubmit}
-                                >
-                                    <Check className="h-4 w-4 text-muted-foreground"/>
-                                </Button>
-                            ) : (
-                                <Button
-                                    variant="info"
-                                    size="icon"
-                                    className="h-8 w-8 p-0 "
-                                    onClick={() => setEditable(!editable)}
-                                >
-                                    <Pen className="h-4 w-4 text-muted-foreground"/>
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                    {user.provider && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Signed up with</span>
-                            <span className="font-medium capitalize">{user.provider}</span>
-                        </div>
-                    )}
-                </CardContent>
-                <CardFooter className="flex justify-end">
-                    <ConfirmDeleteModal
-                        username={user.username}
-                        onConfirm={() => handleDelete(user.id, user.username)}
-                    />
-                </CardFooter>
-            </Card>
-        </div>
-    );
+  return (
+    <div className="mx-auto w-full max-w-md mt-18 p-6">
+      <Card>
+        <CardHeader className="flex flex-col items-center gap-2 text-center">
+          <EditableAvatar fallback={user.username.charAt(0).toUpperCase()} alt={user.username} />
+          <CardTitle>{user.username}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Separator />
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Email</span>
+            <span className="font-medium">{user.email}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Full Name</span>
+            <div className="flex items-center gap-2">
+              {editable ? (
+                <Input
+                  value={fullname}
+                  onChange={(e) => setFullname(e.target.value)}
+                  className="w-full max-w-30  max-h-6"
+                />
+              ) : (
+                <span className="font-medium">{user.fullname}</span>
+              )}
+              {editable ? (
+                <Button
+                  variant="positive"
+                  size="icon"
+                  className="h-8 w-8 p-0 bg-green-500"
+                  onClick={handleSubmit}
+                >
+                  <Check className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              ) : (
+                <Button
+                  variant="info"
+                  size="icon"
+                  className="h-8 w-8 p-0 "
+                  onClick={() => setEditable(!editable)}
+                >
+                  <Pen className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              )}
+            </div>
+          </div>
+          {user.provider && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Signed up with</span>
+              <span className="font-medium capitalize">{user.provider}</span>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <ConfirmDeleteModal
+            username={user.username}
+            onConfirm={() => handleDelete(user.id, user.username)}
+          />
+        </CardFooter>
+      </Card>
+    </div>
+  );
 }
