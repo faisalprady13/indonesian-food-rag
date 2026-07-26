@@ -39,7 +39,7 @@ export default function MyProfile({ user }: Readonly<MyProfileProps>) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div className="mx-auto w-full max-w-md mt-18 p-6">
       <Card>
         <CardHeader className="flex flex-col items-center gap-2 text-center">
           <EditableAvatar fallback={user.username.charAt(0).toUpperCase()} alt={user.username} />
