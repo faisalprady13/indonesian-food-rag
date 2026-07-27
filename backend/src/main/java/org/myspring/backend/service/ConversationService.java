@@ -104,13 +104,13 @@ public class ConversationService {
     }
 
     @Transactional
-    public Long deleteConversationById(Long id, Long userId) {
+    public void deleteConversationById(Long id, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "User not found"));
 
-        return conversationRepository
+        conversationRepository
                 .deleteByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,

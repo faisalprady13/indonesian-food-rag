@@ -35,6 +35,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -188,18 +189,16 @@ class ConversationControllerTest {
     }
 
     @Test
-    void deleteConversationById_returnsDeletedId() throws Exception {
-        given(conversationService.deleteConversationById(10L, USER_ID)).willReturn(10L);
-
+    void deleteConversationById_returnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/conversation/{id}", 10L).with(user(authenticatedUser())))
-                .andExpect(status().isOk())
-                .andExpect(content().string("10"));
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
     }
 
     @Test
     void deleteConversationById_notFound_returns404() throws Exception {
-        given(conversationService.deleteConversationById(999L, USER_ID))
-                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+        willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"))
+                .given(conversationService).deleteConversationById(999L, USER_ID);
 
         mockMvc.perform(delete("/api/conversation/{id}", 999L).with(user(authenticatedUser())))
                 .andExpect(status().isNotFound());

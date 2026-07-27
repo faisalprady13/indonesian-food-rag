@@ -48,7 +48,8 @@ public class ConversationController {
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable Long id
     ) {
-        return ResponseEntity.ok(
-                conversationService.deleteConversationById(id, principal.user().getId()));
+        conversationService.deleteConversationById(id, principal.user().getId());
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -225,9 +225,9 @@ class ConversationServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(conversationRepository.deleteByIdAndUserId(10L, 1L)).thenReturn(Optional.of(10L));
 
-        Long result = conversationService.deleteConversationById(10L, 1L);
+        conversationService.deleteConversationById(10L, 1L);
 
-        assertThat(result).isEqualTo(10L);
+        verify(conversationRepository).deleteByIdAndUserId(10L, 1L);
     }
 
     @Test
