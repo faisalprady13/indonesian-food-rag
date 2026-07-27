@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.request.LoginRequest;
 import org.myspring.backend.dto.request.RegisterRequest;
 import org.myspring.backend.model.User;
+import org.myspring.backend.model.UserSetting;
 import org.myspring.backend.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ public class AuthService {
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
+    @Transactional
     public User register(RegisterRequest user) {
         User newUser = User.builder()
                 .role("USER")
@@ -29,6 +32,14 @@ public class AuthService {
                 .provider("local")
                 .password(encoder.encode(user.password()))
                 .build();
+
+        UserSetting setting = UserSetting.builder()
+                .appTheme("dark")
+                .user(newUser)
+                .build();
+
+        newUser.setUserSetting(setting);
+
         return userRepository.save(newUser);
     }
 
