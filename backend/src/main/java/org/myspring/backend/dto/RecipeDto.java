@@ -1,19 +1,19 @@
-package org.myspring.backend.dto.response;
+package org.myspring.backend.dto;
 
 import org.myspring.backend.model.Ingredient;
 import org.myspring.backend.model.Recipe;
 
 import java.util.List;
 
-public record RecipeAskResponse(
+public record RecipeDto(
         Long id,
         String title,
         String steps,
         List<String> ingredients
 ) {
 
-    public static RecipeAskResponse fromRecipe(Recipe recipe) {
-        return new RecipeAskResponse(
+    public static RecipeDto fromRecipe(Recipe recipe) {
+        return new RecipeDto(
                 recipe.getId(),
                 recipe.getTitle(),
                 recipe.getSteps(),

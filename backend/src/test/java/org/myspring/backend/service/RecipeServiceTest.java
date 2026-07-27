@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.myspring.backend.dto.response.FavoriteResponse;
 import org.myspring.backend.dto.response.RecipeDetailResponse;
 import org.myspring.backend.dto.response.RecipeResponse;
 import org.myspring.backend.dto.response.RecipeSuggestionResponse;
@@ -114,6 +115,18 @@ class RecipeServiceTest {
     }
 
     @Test
+    void getRecipes_sortsDescending_whenDirectionIsDesc() {
+        Recipe rendang = newRecipe(1L, "Rendang");
+        Pageable pageable = PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("id").descending());
+        when(recipeRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(rendang)));
+        when(userRepository.findFavoriteRecipeIds(1L)).thenReturn(Set.of());
+
+        recipeService.getRecipes(0, 10, "id", "desc", null, 1L);
+
+        verify(recipeRepository).findAll(pageable);
+    }
+
+    @Test
     void getRecipe_returnsRecipeWithIngredients() {
         Recipe rendang = newRecipe(1L, "Rendang", "beef", "coconut milk", "chili");
         when(recipeRepository.findById(1L)).thenReturn(Optional.of(rendang));
@@ -140,9 +153,12 @@ class RecipeServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(recipeRepository.findById(2L)).thenReturn(Optional.of(recipe));
 
-        recipeService.addFavorite(1L, 2L);
+        FavoriteResponse response = recipeService.addFavorite(1L, 2L);
 
         assertThat(user.getFavoriteRecipes()).contains(recipe);
+        assertThat(response.recipeId()).isEqualTo(2L);
+        assertThat(response.recipeName()).isEqualTo("Rendang");
+        assertThat(response.saved()).isTrue();
         verify(userRepository).save(user);
     }
 

@@ -1,7 +1,8 @@
 package org.myspring.backend.tool;
 
 import lombok.RequiredArgsConstructor;
-import org.myspring.backend.dto.response.RecipeAskResponse;
+import org.myspring.backend.dto.RecipeDto;
+import org.myspring.backend.dto.response.RecipeResponse;
 import org.myspring.backend.helper.VectorConverter;
 import org.myspring.backend.repository.RecipeEmbeddingRepository;
 import org.myspring.backend.repository.RecipeRepository;
@@ -26,7 +27,7 @@ public class RecipeTools {
             Only call this tool when the guest provides specific dish names,
             ingredients, or clear meal preferences.
             """)
-    public List<RecipeAskResponse> searchRecipes(String query) {
+    public List<RecipeDto> searchRecipes(String query) {
 
         // embed question
         float[] vector =
@@ -45,7 +46,7 @@ public class RecipeTools {
 
         // get by recipe id
         return recipeRepository.findAllById(recipeIds).stream()
-                .map(RecipeAskResponse::fromRecipe)
+                .map(RecipeDto::fromRecipe)
                 .toList();
 
     }

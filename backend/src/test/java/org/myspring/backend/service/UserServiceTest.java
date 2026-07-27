@@ -1,15 +1,20 @@
 package org.myspring.backend.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.UserDto;
+import org.myspring.backend.exception.UnauthorizedException;
 import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
+import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.repository.UserRepository;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -33,6 +38,11 @@ class UserServiceTest {
 
     @InjectMocks
     private UserService userService;
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void updateUser_updatesFullnameAndSaves() throws UserNotFound {
@@ -106,5 +116,42 @@ class UserServiceTest {
 
         assertThrows(UserNotFound.class, () -> userService.deleteUser(999L, "ghost"));
         verify(userRepository, never()).delete(any());
+    }
+
+    @Test
+    void getCurrentUserId_returnsUserId_whenPrincipalIsAuthenticatedUser() throws UnauthorizedException {
+        User user = User.builder().id(42L).username("johndoe").build();
+        UserPrincipal principal = new UserPrincipal(user);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
+
+        Long result = userService.getCurrentUserId();
+
+        assertThat(result).isEqualTo(42L);
+    }
+
+    @Test
+    void getCurrentUserId_throwsUnauthorized_whenNoAuthentication() {
+        SecurityContextHolder.clearContext();
+
+        assertThrows(UnauthorizedException.class, () -> userService.getCurrentUserId());
+    }
+
+    @Test
+    void getCurrentUserId_throwsUnauthorized_whenNotAuthenticated() {
+        User user = User.builder().id(42L).username("johndoe").build();
+        UserPrincipal principal = new UserPrincipal(user);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null));
+
+        assertThrows(UnauthorizedException.class, () -> userService.getCurrentUserId());
+    }
+
+    @Test
+    void getCurrentUserId_throwsUnauthorized_whenPrincipalIsNotUserPrincipal() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("someUsername", null, java.util.List.of()));
+
+        assertThrows(UnauthorizedException.class, () -> userService.getCurrentUserId());
     }
 }

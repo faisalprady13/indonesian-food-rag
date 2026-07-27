@@ -25,5 +25,4 @@ public record UserPrincipal(User user) implements UserDetails {
     public String getUsername() {
         return user.getUsername();
     }
-
 }
