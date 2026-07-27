@@ -1,6 +1,7 @@
 package org.myspring.backend.controller;
 
 import org.junit.jupiter.api.Test;
+import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ChatMessageResponse;
 import org.myspring.backend.dto.response.ConversationResponse;
 import org.myspring.backend.enums.MessageRole;
@@ -14,6 +15,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,7 +36,10 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -68,6 +74,9 @@ class ConversationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private ConversationService conversationService;
@@ -135,5 +144,70 @@ class ConversationControllerTest {
 
         mockMvc.perform(get("/api/conversation/{id}", 999L).with(user(authenticatedUser())))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateConversationTitle_returnsUpdatedConversation() throws Exception {
+        UpdateTitleConversationRequest requestBody = new UpdateTitleConversationRequest("New Title");
+        ConversationResponse updated = new ConversationResponse(10L, "New Title", List.of());
+
+        given(conversationService.updateConversationTitle(eq(10L), eq(requestBody), eq(USER_ID)))
+                .willReturn(updated);
+
+        mockMvc.perform(patch("/api/conversation/{id}", 10L)
+                        .with(user(authenticatedUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.title").value("New Title"));
+    }
+
+    @Test
+    void updateConversationTitle_notFound_returns404() throws Exception {
+        UpdateTitleConversationRequest requestBody = new UpdateTitleConversationRequest("New Title");
+
+        given(conversationService.updateConversationTitle(eq(999L), eq(requestBody), anyLong()))
+                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+
+        mockMvc.perform(patch("/api/conversation/{id}", 999L)
+                        .with(user(authenticatedUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateConversationTitle_withoutAuthentication_isRejected() throws Exception {
+        UpdateTitleConversationRequest requestBody = new UpdateTitleConversationRequest("New Title");
+
+        mockMvc.perform(patch("/api/conversation/{id}", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void deleteConversationById_returnsDeletedId() throws Exception {
+        given(conversationService.deleteConversationById(10L, USER_ID)).willReturn(10L);
+
+        mockMvc.perform(delete("/api/conversation/{id}", 10L).with(user(authenticatedUser())))
+                .andExpect(status().isOk())
+                .andExpect(content().string("10"));
+    }
+
+    @Test
+    void deleteConversationById_notFound_returns404() throws Exception {
+        given(conversationService.deleteConversationById(999L, USER_ID))
+                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+
+        mockMvc.perform(delete("/api/conversation/{id}", 999L).with(user(authenticatedUser())))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteConversationById_withoutAuthentication_isRejected() throws Exception {
+        mockMvc.perform(delete("/api/conversation/{id}", 10L))
+                .andExpect(status().is4xxClientError());
     }
 }
