@@ -2,6 +2,7 @@ package org.myspring.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.request.ChatRequest;
+import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ConversationResponse;
 import org.myspring.backend.model.Conversation;
 import org.myspring.backend.model.User;
@@ -79,5 +80,40 @@ public class ConversationService {
         conversation.setTitle(titleGeneratorService.generate(userQuestion));
 
         return conversationRepository.save(conversation);
+    }
+
+    @Transactional
+    public ConversationResponse updateConversationTitle(Long id, UpdateTitleConversationRequest updateTitleConversationRequest, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found"));
+
+        Conversation conversation = conversationRepository
+                .findByIdAndUserId(id, user.getId())
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Conversation not found"
+                        )
+                );
+
+        conversation.setTitle(updateTitleConversationRequest.title());
+
+        return ConversationResponse.fromConversationWithoutMessages(conversation);
+    }
+
+    @Transactional
+    public Long deleteConversationById(Long id, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found"));
+
+        return conversationRepository
+                .deleteByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Conversation not found"));
     }
 }
