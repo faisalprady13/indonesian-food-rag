@@ -24,4 +24,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
                 AND c.user.id = :userId
             """)
     Optional<Conversation> findDetailByIdAndUserId(Long id, Long userId);
+
+    Optional<Long> deleteByIdAndUserId(Long id, Long userId);
 }

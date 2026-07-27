@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.request.ChatRequest;
+import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ConversationResponse;
 import org.myspring.backend.enums.MessageRole;
 import org.myspring.backend.model.ChatMessage;
@@ -180,5 +181,71 @@ class ConversationServiceTest {
         assertThrows(ResponseStatusException.class,
                 () -> conversationService.getOrCreateConversation(999L, request, "What is rendang?"));
         verify(conversationRepository, never()).save(any());
+    }
+
+    @Test
+    void updateConversationTitle_updatesTitle_whenFound() {
+        User user = User.builder().id(1L).build();
+        Conversation conversation = newConversation();
+        UpdateTitleConversationRequest request = new UpdateTitleConversationRequest("New Title");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(conversationRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(conversation));
+
+        ConversationResponse result = conversationService.updateConversationTitle(10L, request, 1L);
+
+        assertThat(result.id()).isEqualTo(10L);
+        assertThat(result.title()).isEqualTo("New Title");
+        assertThat(conversation.getTitle()).isEqualTo("New Title");
+    }
+
+    @Test
+    void updateConversationTitle_throwsNotFound_whenUserDoesNotExist() {
+        UpdateTitleConversationRequest request = new UpdateTitleConversationRequest("New Title");
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class,
+                () -> conversationService.updateConversationTitle(10L, request, 999L));
+        verify(conversationRepository, never()).findByIdAndUserId(any(), any());
+    }
+
+    @Test
+    void updateConversationTitle_throwsNotFound_whenConversationDoesNotExist() {
+        User user = User.builder().id(1L).build();
+        UpdateTitleConversationRequest request = new UpdateTitleConversationRequest("New Title");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(conversationRepository.findByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class,
+                () -> conversationService.updateConversationTitle(999L, request, 1L));
+    }
+
+    @Test
+    void deleteConversationById_deletesConversation_whenFound() {
+        User user = User.builder().id(1L).build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(conversationRepository.deleteByIdAndUserId(10L, 1L)).thenReturn(Optional.of(10L));
+
+        conversationService.deleteConversationById(10L, 1L);
+
+        verify(conversationRepository).deleteByIdAndUserId(10L, 1L);
+    }
+
+    @Test
+    void deleteConversationById_throwsNotFound_whenUserDoesNotExist() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class,
+                () -> conversationService.deleteConversationById(10L, 999L));
+        verify(conversationRepository, never()).deleteByIdAndUserId(any(), any());
+    }
+
+    @Test
+    void deleteConversationById_throwsNotFound_whenConversationDoesNotExist() {
+        User user = User.builder().id(1L).build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(conversationRepository.deleteByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class,
+                () -> conversationService.deleteConversationById(999L, 1L));
     }
 }

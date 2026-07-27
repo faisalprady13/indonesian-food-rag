@@ -167,3 +167,21 @@ export async function getConversations(signal?: AbortSignal): Promise<Conversati
   const { data } = await http.get<Conversation[]>(`/api/conversation`, { signal });
   return data;
 }
+
+export async function renameConversation(
+  conversationId: number,
+  title: string,
+): Promise<Conversation> {
+  const { data } = await http.patch<Conversation>(
+    `/api/conversation/${conversationId}`,
+    {
+      title,
+    },
+    { headers: { 'Content-Type': 'application/json' } },
+  );
+  return data;
+}
+
+export async function deleteConversation(conversationId: number): Promise<void> {
+  await http.delete(`/api/conversation/${conversationId}`);
+}

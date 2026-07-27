@@ -1,6 +1,7 @@
 package org.myspring.backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ConversationResponse;
 import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.service.ConversationService;
@@ -31,5 +32,24 @@ public class ConversationController {
     ) {
         return ResponseEntity.ok(
                 conversationService.getConversationById(id, principal.user().getId()));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ConversationResponse> updateConversationTitle(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long id,
+            @RequestBody UpdateTitleConversationRequest updateTitleConversationRequest
+    ) {
+        return ResponseEntity.ok(conversationService.updateConversationTitle(id, updateTitleConversationRequest, principal.user().getId()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Long> deleteConversationById(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long id
+    ) {
+        conversationService.deleteConversationById(id, principal.user().getId());
+
+        return ResponseEntity.noContent().build();
     }
 }
