@@ -9,12 +9,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.request.ChatRequest;
 import org.myspring.backend.dto.response.ChatResponse;
+import org.myspring.backend.factory.UserChatClientFactory;
 import org.myspring.backend.model.Conversation;
+import org.myspring.backend.model.UserSetting;
+import org.myspring.backend.service.ApiKeyEncryptionService;
 import org.myspring.backend.service.ConversationService;
 import org.myspring.backend.service.MessageService;
-import org.myspring.backend.tool.RecipeTools;
+import org.myspring.backend.service.UserSettingService;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
 
 import java.util.function.Consumer;
 
@@ -27,9 +29,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class RecipeChatServiceTest {
 
-    @Mock(answer = Answers.RETURNS_SELF)
-    private ChatClient.Builder builder;
-
     @Mock
     private ChatClient chatClient;
 
@@ -40,23 +39,38 @@ class RecipeChatServiceTest {
     private ChatClient.CallResponseSpec callResponseSpec;
 
     @Mock
+    private UserSettingService userSettingService;
+
+    @Mock
     private ConversationService conversationService;
+
+    @Mock
+    private ApiKeyEncryptionService apiKeyEncryptionService;
 
     @Mock
     private MessageService messageService;
 
     @Mock
-    private RecipeTools recipeTools;
-
-    @Mock
-    private ChatMemory chatMemory;
+    private UserChatClientFactory userChatClientFactory;
 
     private RecipeChatService recipeChatService;
 
     @BeforeEach
     void setUp() {
-        when(builder.build()).thenReturn(chatClient);
-        recipeChatService = new RecipeChatService(builder, conversationService, messageService, recipeTools, chatMemory);
+        recipeChatService = new RecipeChatService(
+                userSettingService,
+                conversationService,
+                apiKeyEncryptionService,
+                messageService,
+                userChatClientFactory
+        );
+    }
+
+    private void stubApiKey(Long userId, String encryptedKey, String decryptedKey) {
+        UserSetting userSetting = UserSetting.builder().apiKey(encryptedKey).build();
+        when(userSettingService.findByUserId(userId)).thenReturn(userSetting);
+        when(apiKeyEncryptionService.decrypt(encryptedKey)).thenReturn(decryptedKey);
+        when(userChatClientFactory.create(decryptedKey)).thenReturn(chatClient);
     }
 
     @SuppressWarnings("unchecked")
@@ -76,6 +90,7 @@ class RecipeChatServiceTest {
 
         when(conversationService.getOrCreateConversation(1L, request, "What is rendang?"))
                 .thenReturn(conversation);
+        stubApiKey(1L, "encrypted-key", "sk-test-key");
         stubChatClientCall("What is rendang?", "Rendang is a spicy Indonesian meat dish.");
 
         ChatResponse response = recipeChatService.askQuestion(1L, request, "What is rendang?");
@@ -95,6 +110,7 @@ class RecipeChatServiceTest {
 
         when(conversationService.getOrCreateConversation(2L, request, "How do I make soto?"))
                 .thenReturn(conversation);
+        stubApiKey(2L, "encrypted-key-2", "sk-test-key-2");
         stubChatClientCall("How do I make soto?", "Soto recipe details.");
 
         recipeChatService.askQuestion(2L, request, "How do I make soto?");
@@ -106,5 +122,22 @@ class RecipeChatServiceTest {
         advisorCaptor.getValue().accept(advisorSpec);
 
         verify(advisorSpec).param("chat_memory_conversation_id", "42");
+    }
+
+    @Test
+    void askQuestion_decryptsStoredApiKey_toCreateChatClient() {
+        Conversation conversation = new Conversation();
+        conversation.setId(7L);
+        ChatRequest request = new ChatRequest(null, "What is nasi goreng?");
+
+        when(conversationService.getOrCreateConversation(3L, request, "What is nasi goreng?"))
+                .thenReturn(conversation);
+        stubApiKey(3L, "encrypted-nasi-key", "sk-nasi-key");
+        stubChatClientCall("What is nasi goreng?", "Nasi goreng is fried rice.");
+
+        recipeChatService.askQuestion(3L, request, "What is nasi goreng?");
+
+        verify(apiKeyEncryptionService).decrypt("encrypted-nasi-key");
+        verify(userChatClientFactory).create("sk-nasi-key");
     }
 }
