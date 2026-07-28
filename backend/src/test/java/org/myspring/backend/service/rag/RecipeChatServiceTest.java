@@ -9,7 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.request.ChatRequest;
 import org.myspring.backend.dto.response.ChatResponse;
-import org.myspring.backend.factory.UserChatClientFactory;
+import org.myspring.backend.factory.ChatClientFactory;
 import org.myspring.backend.model.Conversation;
 import org.myspring.backend.model.UserSetting;
 import org.myspring.backend.service.ApiKeyEncryptionService;
@@ -17,6 +17,7 @@ import org.myspring.backend.service.ConversationService;
 import org.myspring.backend.service.MessageService;
 import org.myspring.backend.service.UserSettingService;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.function.Consumer;
 
@@ -51,7 +52,9 @@ class RecipeChatServiceTest {
     private MessageService messageService;
 
     @Mock
-    private UserChatClientFactory userChatClientFactory;
+    private ChatClientFactory chatClientFactory;
+
+    private static final String MODEL = "gpt-4o-mini";
 
     private RecipeChatService recipeChatService;
 
@@ -62,15 +65,16 @@ class RecipeChatServiceTest {
                 conversationService,
                 apiKeyEncryptionService,
                 messageService,
-                userChatClientFactory
+                chatClientFactory
         );
+        ReflectionTestUtils.setField(recipeChatService, "model", MODEL);
     }
 
     private void stubApiKey(Long userId, String encryptedKey, String decryptedKey) {
         UserSetting userSetting = UserSetting.builder().apiKey(encryptedKey).build();
         when(userSettingService.findByUserId(userId)).thenReturn(userSetting);
         when(apiKeyEncryptionService.decrypt(encryptedKey)).thenReturn(decryptedKey);
-        when(userChatClientFactory.create(decryptedKey)).thenReturn(chatClient);
+        when(chatClientFactory.create(decryptedKey, MODEL)).thenReturn(chatClient);
     }
 
     @SuppressWarnings("unchecked")
@@ -138,6 +142,6 @@ class RecipeChatServiceTest {
         recipeChatService.askQuestion(3L, request, "What is nasi goreng?");
 
         verify(apiKeyEncryptionService).decrypt("encrypted-nasi-key");
-        verify(userChatClientFactory).create("sk-nasi-key");
+        verify(chatClientFactory).create("sk-nasi-key", MODEL);
     }
 }

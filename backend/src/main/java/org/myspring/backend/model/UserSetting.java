@@ -17,7 +17,7 @@ public class UserSetting {
     private Long id;
 
     @JsonIgnore
-    @Column(name = "api_key_encrypted")
+    @Column(name = "api_key_encrypted", columnDefinition = "TEXT")
     private String apiKey;
 
     @Builder.Default

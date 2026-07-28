@@ -10,8 +10,9 @@ import AppLayout from '@/layout/AppLayout.tsx';
 import { useEffect } from 'react';
 import ProtectedRoute from '@/components/protectedRoute/ProtectedRoute.tsx';
 import CustomSection from '@/components/customSection/CustomSection.tsx';
-import { getMe, setToken, logout } from '@/lib/api';
+import { getMe, getUserSetting, setToken, logout } from '@/lib/api';
 import { useAppStore } from '@/store/appStore.ts';
+import { applyTheme } from '@/lib/theme.ts';
 
 function App() {
   const user = useAppStore((state) => state.user);
@@ -43,6 +44,19 @@ function App() {
       setUser(null);
     }
   }, [me, isError, setUser]);
+
+  const { data: userSetting } = useQuery({
+    queryKey: ['user-setting'],
+    queryFn: ({ signal }) => getUserSetting(signal),
+    enabled: !!user,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (userSetting) {
+      applyTheme(userSetting.appTheme);
+    }
+  }, [userSetting]);
 
   function handleLogout() {
     logout();

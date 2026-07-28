@@ -11,15 +11,16 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 
 @Component
 @RequiredArgsConstructor
-public class UserChatClientFactory {
+public class ChatClientFactory {
 
     private final RecipeTools recipeTools;
     private final ChatMemory chatMemory;
 
-    public ChatClient create(String apiKey) {
+    public ChatClient create(String apiKey, String model) {
         OpenAiChatModel chatModel = OpenAiChatModel.builder()
                 .options(OpenAiChatOptions.builder()
                         .apiKey(apiKey)
+                        .model(model)
                         .build())
                 .build();
 
