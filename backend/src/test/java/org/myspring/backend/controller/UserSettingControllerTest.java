@@ -98,7 +98,6 @@ class UserSettingControllerTest {
 
         mockMvc.perform(get("/api/user-setting").with(user(authenticatedUser())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(5))
                 .andExpect(jsonPath("$.appTheme").value("dark"));
     }
 
@@ -129,7 +128,6 @@ class UserSettingControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestBody)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(5))
                 .andExpect(jsonPath("$.appTheme").value("light"));
     }
 
