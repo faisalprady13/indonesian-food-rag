@@ -18,15 +18,21 @@ public class ChatClientFactory {
     private final UserFavoriteTools userFavoriteTools;
     private final ChatMemory chatMemory;
 
-    public ChatClient create(String apiKey, String model) {
-        OpenAiChatModel chatModel = OpenAiChatModel.builder()
+    public OpenAiChatModel createChatModel(String apiKey, String model) {
+        return OpenAiChatModel.builder()
                 .options(OpenAiChatOptions.builder()
                         .apiKey(apiKey)
                         .model(model)
                         .build())
                 .build();
+    }
 
-        return ChatClient.builder(chatModel)
+    public ChatClient.Builder createChatClientBuilder(String apiKey, String model) {
+        return ChatClient.builder(createChatModel(apiKey, model));
+    }
+
+    public ChatClient create(String apiKey, String model) {
+        return createChatClientBuilder(apiKey, model)
                 .defaultSystem("""
                         You are an AI cooking assistant.
                         
