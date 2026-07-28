@@ -24,7 +24,11 @@ export default function MessageInputGroup({ inputRef, onSubmit, sending }: Messa
             onSubmit();
           }}
         >
-          <InputGroup className={'w-full max-w-3xl m-auto dark:bg-muted rounded-full pl-2'}>
+          <InputGroup
+            className={
+              'w-full max-w-3xl m-auto dark:bg-muted rounded-full pl-2 bg-[var(--background)]'
+            }
+          >
             <InputGroupInput
               ref={inputRef}
               placeholder="Ask anything about recipe"

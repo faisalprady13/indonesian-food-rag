@@ -8,6 +8,7 @@ import type {
   GetFavoriteRecipeParams,
 } from '../types/Recipe.ts';
 import type { Conversation, Message, MessageRequest } from '@/types/Chat.ts';
+import type { UserSetting, UserSettingRequest } from '@/types/UserSetting.ts';
 
 export interface CurrentUser {
   id: number;
@@ -184,4 +185,16 @@ export async function renameConversation(
 
 export async function deleteConversation(conversationId: number): Promise<void> {
   await http.delete(`/api/conversation/${conversationId}`);
+}
+
+export async function getUserSetting(signal?: AbortSignal): Promise<UserSetting> {
+  const { data } = await http.get<UserSetting>('/api/user-setting', { signal });
+  return data;
+}
+
+export async function updateUserSetting(payload: UserSettingRequest): Promise<UserSetting> {
+  const { data } = await http.put<UserSetting>('/api/user-setting/', payload, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return data;
 }

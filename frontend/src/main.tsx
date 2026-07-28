@@ -4,8 +4,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import App from './App.tsx';
+import { applyTheme, getStoredTheme } from './lib/theme.ts';
 
-document.documentElement.classList.add('dark');
+applyTheme(getStoredTheme());
 
 const queryClient = new QueryClient({
   defaultOptions: {

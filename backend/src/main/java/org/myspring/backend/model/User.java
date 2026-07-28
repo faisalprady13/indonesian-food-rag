@@ -35,10 +35,18 @@ public class User {
 
     @JsonIgnore
     private String password;
+    
     private String provider;
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private UserSetting userSetting;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -63,7 +71,6 @@ public class User {
     )
     private List<Conversation> conversations = new ArrayList<>();
 
-
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -75,7 +82,6 @@ public class User {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
 
     public void update(String fullname) {
         this.fullname = fullname != null ? fullname : this.fullname;
