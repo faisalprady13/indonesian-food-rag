@@ -47,7 +47,7 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
 
   const [state, submitSettings, isSaving] = useActionState<SettingsState, FormData>(
     async (_previousState, formData) => {
-      const selectedTheme: AppTheme = formData.get('appTheme');
+      const selectedTheme: AppTheme = formData.get('appTheme') === 'light' ? 'light' : 'dark';
       const apiKey = String(formData.get('apiKey') ?? '').trim();
 
       try {
