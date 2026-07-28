@@ -78,7 +78,7 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
           <form key={appTheme} action={submitSettings} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium" htmlFor="app-theme-trigger">
-                Dark or Light
+                Theme
               </label>
               <Select name="appTheme" defaultValue={appTheme}>
                 <SelectTrigger id="app-theme-trigger">
