@@ -1,7 +1,6 @@
 export type AppTheme = 'dark' | 'light';
 
 export interface UserSetting {
-  id: number;
   appTheme: AppTheme;
 }
 

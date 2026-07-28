@@ -2,8 +2,8 @@ package org.myspring.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.request.UserSettingRequest;
+import org.myspring.backend.dto.response.UserSettingResponse;
 import org.myspring.backend.model.UserPrincipal;
-import org.myspring.backend.model.UserSetting;
 import org.myspring.backend.service.UserSettingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,21 +20,23 @@ public class UserSettingController {
     private final UserSettingService userSettingService;
 
     @GetMapping
-    public ResponseEntity<UserSetting> getUserSetting(
+    public ResponseEntity<UserSettingResponse> getUserSetting(
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(
-                userSettingService.findByUserId(principal.user().getId())
+                UserSettingResponse.fromUserSetting(userSettingService.findByUserId(principal.user().getId()))
         );
     }
 
     @PutMapping("/")
-    public ResponseEntity<UserSetting> updateUserSetting(
+    public ResponseEntity<UserSettingResponse> updateUserSetting(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody UserSettingRequest userSetting
     ) {
         return ResponseEntity.ok(
-                userSettingService.save(principal.user().getId(), userSetting)
+                UserSettingResponse.fromUserSetting(
+                        userSettingService.save(principal.user().getId(), userSetting)
+                )
         );
     }
 }
