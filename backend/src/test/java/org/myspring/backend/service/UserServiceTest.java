@@ -45,6 +45,20 @@ class UserServiceTest {
     }
 
     @Test
+    void createUser_setsRoleAndAttachesDefaultDarkThemeUserSettingAndSaves() {
+        User newUser = User.builder().username("chef").email("chef@example.com").build();
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = userService.createUser(newUser);
+
+        assertThat(result.getRole()).isEqualTo("USER");
+        assertThat(result.getUserSetting()).isNotNull();
+        assertThat(result.getUserSetting().getAppTheme()).isEqualTo("dark");
+        assertThat(result.getUserSetting().getUser()).isEqualTo(result);
+        verify(userRepository).save(newUser);
+    }
+
+    @Test
     void updateUser_updatesFullnameAndSaves() throws UserNotFound {
         User user = User.builder().id(1L).fullname("Old Name").build();
         UserDto userDto = new UserDto(1L, "New Name");

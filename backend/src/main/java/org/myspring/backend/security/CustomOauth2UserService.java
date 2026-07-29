@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.myspring.backend.model.User;
 import org.myspring.backend.repository.UserRepository;
+import org.myspring.backend.service.UserService;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -28,6 +29,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
     private static final String IMAGE_ATTRIBUTE = "avatar_url";
 
     private final UserRepository userRepository;
+    private final UserService userService;
     private final RestClient githubRestClient;
 
     @Override
@@ -67,16 +69,14 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
     }
 
     private User createUser(Map<String, Object> attributes) {
-        User user = User.builder()
+        User newUser = User.builder()
                 .username(attributes.get(LOGIN_ATTRIBUTE).toString())
                 .email(attributes.get(EMAIL_ATTRIBUTE).toString())
                 .provider(attributes.get(PROVIDER_ATTRIBUTE).toString())
                 .imageUrl(attributes.get(IMAGE_ATTRIBUTE).toString())
-                .role("USER")
                 .build();
 
-        userRepository.save(user);
-        return user;
+        return userService.createUser(newUser);
     }
 
     private String resolveEmail(OAuth2User oAuth2User, OAuth2UserRequest userRequest) {
@@ -98,7 +98,8 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                 .uri("/user/emails")
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {}); // use generic type ParameterizedTypeReference
+                .body(new ParameterizedTypeReference<>() {
+                }); // use generic type ParameterizedTypeReference
 
         if (emails == null) {
             return null;
