@@ -1,15 +1,19 @@
 package org.myspring.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.myspring.backend.dto.UserDto;
 import org.myspring.backend.exception.UnauthorizedException;
 import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
 import org.myspring.backend.model.UserPrincipal;
+import org.myspring.backend.model.UserSetting;
 import org.myspring.backend.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,9 +22,28 @@ import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     private final CloudinaryService cloudinaryService;
     private final UserRepository userRepository;
+
+    @Override
+    public @NonNull UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new UserPrincipal(user);
+    }
+
+    @Transactional
+    public User createUser(User newUser) {
+        newUser.setRole("USER");
+
+        UserSetting setting = UserSetting.builder()
+                .appTheme("dark")
+                .user(newUser)
+                .build();
+        newUser.setUserSetting(setting);
+
+        return userRepository.save(newUser);
+    }
 
     @Transactional
     public User updateUser(Long id, UserDto userDto) throws UserNotFound {
@@ -62,7 +85,6 @@ public class UserService {
 
         return user.getId();
     }
-
 
     private User findUserOrThrow(Long id) throws UserNotFound {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFound("UserId " + id + " is not found"));
