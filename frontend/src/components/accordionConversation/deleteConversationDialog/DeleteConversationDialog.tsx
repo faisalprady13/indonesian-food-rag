@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { deleteConversation } from '@/lib/api';
+import { deleteConversation } from '@/lib/api.ts';
 import type { Conversation } from '@/types/Chat.ts';
 
 type DeleteConversationDialogProps = {

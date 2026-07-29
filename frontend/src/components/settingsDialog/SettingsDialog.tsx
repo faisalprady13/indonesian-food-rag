@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import SettingsDialogSkeleton from '@/components/skeletons/SettingsDialogSkeleton.tsx';
-import { getUserSetting, updateUserSetting } from '@/lib/api';
+import { getUserSetting, updateUserSetting } from '@/lib/api.ts';
 import { applyTheme } from '@/lib/theme.ts';
 import type { AppTheme } from '@/types/UserSetting.ts';
 

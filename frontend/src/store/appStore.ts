@@ -1,4 +1,4 @@
-import type { CurrentUser } from '@/lib/api';
+import type { CurrentUser } from '@/lib/api.ts';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
