@@ -15,6 +15,8 @@ import org.myspring.backend.repository.UserRepository;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -42,6 +44,25 @@ class UserServiceTest {
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void loadUserByUsername_returnsUserPrincipal_whenUserExists() {
+        User user = User.builder().id(1L).username("johndoe").build();
+        when(userRepository.findByUsername("johndoe")).thenReturn(Optional.of(user));
+
+        UserDetails result = userService.loadUserByUsername("johndoe");
+
+        assertThat(result).isInstanceOf(UserPrincipal.class);
+        assertThat(result.getUsername()).isEqualTo("johndoe");
+        assertThat(((UserPrincipal) result).user()).isEqualTo(user);
+    }
+
+    @Test
+    void loadUserByUsername_throwsUsernameNotFound_whenUserDoesNotExist() {
+        when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+        assertThrows(UsernameNotFoundException.class, () -> userService.loadUserByUsername("ghost"));
     }
 
     @Test
