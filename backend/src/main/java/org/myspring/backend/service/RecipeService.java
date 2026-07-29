@@ -1,6 +1,7 @@
 package org.myspring.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.myspring.backend.dto.response.FavoriteResponse;
 import org.myspring.backend.dto.response.RecipeDetailResponse;
 import org.myspring.backend.dto.response.RecipeResponse;
 import org.myspring.backend.dto.response.RecipeSuggestionResponse;
@@ -53,27 +54,24 @@ public class RecipeService {
     }
 
     @Transactional
-    public void addFavorite(Long userId, Long recipeId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe not found"));
+    public FavoriteResponse addFavorite(Long userId, Long recipeId) {
+        User user = findUserOrThrow(userId);
+        Recipe recipe = findRecipeOrThrow(recipeId);
         user.getFavoriteRecipes().add(recipe);
         userRepository.save(user);
+        return FavoriteResponse.builder().recipeId(recipe.getId()).recipeName(recipe.getTitle()).saved(true).build();
     }
 
     @Transactional
     public void removeFavorite(Long userId, Long recipeId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        User user = findUserOrThrow(userId);
         user.getFavoriteRecipes().removeIf(recipe -> recipe.getId().equals(recipeId));
         userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
     public RecipeDetailResponse getRecipe(Long id, Long currentUserId) {
-        Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe not found"));
+        Recipe recipe = findRecipeOrThrow(id);
         boolean favorited = userRepository.findFavoriteRecipeIds(currentUserId).contains(recipe.getId());
         return RecipeDetailResponse.fromRecipe(recipe, favorited);
     }
@@ -89,5 +87,15 @@ public class RecipeService {
                 .stream()
                 .map(RecipeSuggestionResponse::fromRecipe)
                 .toList();
+    }
+
+    private User findUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    private Recipe findRecipeOrThrow(Long recipeId) {
+        return recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe not found"));
     }
 }

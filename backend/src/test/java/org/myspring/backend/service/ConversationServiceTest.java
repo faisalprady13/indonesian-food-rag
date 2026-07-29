@@ -150,7 +150,7 @@ class ConversationServiceTest {
         Conversation result = conversationService.getOrCreateConversation(1L, request, "What is rendang?");
 
         assertThat(result).isEqualTo(conversation);
-        verify(titleGeneratorService, never()).generate(any());
+        verify(titleGeneratorService, never()).generate(any(), any());
         verify(conversationRepository, never()).save(any());
     }
 
@@ -159,7 +159,7 @@ class ConversationServiceTest {
         User user = User.builder().id(1L).build();
         ChatRequest request = new ChatRequest(null, "What is rendang?");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(titleGeneratorService.generate("What is rendang?")).thenReturn("Rendang Chat");
+        when(titleGeneratorService.generate(1L, "What is rendang?")).thenReturn("Rendang Chat");
         when(conversationRepository.save(any(Conversation.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 

@@ -77,7 +77,7 @@ public class ConversationService {
 
         Conversation conversation = new Conversation();
         conversation.setUser(user);
-        conversation.setTitle(titleGeneratorService.generate(userQuestion));
+        conversation.setTitle(titleGeneratorService.generate(userId, userQuestion));
 
         return conversationRepository.save(conversation);
     }
