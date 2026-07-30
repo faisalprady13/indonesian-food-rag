@@ -47,6 +47,20 @@ public class ChatClientFactory {
                         - Never invent IDs or database data.
                         - Never claim an action succeeded unless the tool succeeded.
                         - Ask clarification questions when required.
+                        
+                        Entity selection rules:
+                        
+                        - When a tool returns multiple matching recipes, do not choose one automatically.
+                        - Display the available recipe titles.
+                        - Ask the user to select one.
+                        - Wait for user confirmation before performing actions such as saving, removing, or modifying favorites.
+                        - Never guess which recipe the user means.
+                        
+                        When presenting multiple recipes:
+                        - Always show the recipe title.
+                        - Do not show database IDs.
+                        - If the user selects a number, treat it as the position in the previous list, not as a recipe ID.
+                        - Before calling any action tool, resolve the selected position to the recipe ID from the previous tool result.
                         """)
                 .defaultTools(recipeTools, userFavoriteTools)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())

@@ -2,6 +2,7 @@ package org.myspring.backend.tool;
 
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.RecipeDto;
+import org.myspring.backend.dto.RecipeSelectionDto;
 import org.myspring.backend.exception.UnauthorizedException;
 import org.myspring.backend.factory.EmbeddingModelFactory;
 import org.myspring.backend.helper.VectorConverter;
@@ -83,38 +84,41 @@ public class RecipeTools {
                 .toList();
     }
 
-
     @Tool(description = """
-            Finds a specific recipe by its title.
+            Finds recipes by title or recipe name.
             
-            Use this tool when:
+            Use this when:
             - the user mentions a recipe name
-            - the user wants to save, favorite, or remove a recipe
-            - the recipe ID is required but not available
+            - the recipe ID is needed but not available
+            - the user wants to save or remove a recipe by name
             
-            Example:
-            User: "Save Chicken Curry to my favorites"
-            Action:
-            1. Call this tool with "Chicken Curry".
-            2. Use the returned recipe ID with the favorite tool.
+            Returns matching recipes with only their IDs and titles.
             
-            Returns the matching recipe including its ID.
+            If multiple recipes are returned:
+            - Ask the user which recipe they mean.
+            - Do not choose one automatically.
             
-            Never guess recipe IDs.
+            Never invent recipe IDs.
             """)
-    public RecipeDto getRecipeByTitle(String title) {
+    public List<RecipeSelectionDto> getRecipesByTitle(String title) {
 
         Specification<Recipe> spec =
                 RecipeSpecifications.titleContainsAllWords(title);
 
-        return recipeRepository.findAll(spec)
+        List<RecipeSelectionDto> recipes = recipeRepository.findAll(spec)
                 .stream()
-                .findFirst()
-                .map(RecipeDto::fromRecipe)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "No recipe found with title: " + title
-                        )
-                );
+                .map(recipe -> new RecipeSelectionDto(
+                        recipe.getId(),
+                        recipe.getTitle()
+                ))
+                .toList();
+
+        if (recipes.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No recipe found with title: " + title
+            );
+        }
+
+        return recipes;
     }
 }

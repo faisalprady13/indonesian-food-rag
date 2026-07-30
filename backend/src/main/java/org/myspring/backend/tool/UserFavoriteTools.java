@@ -30,20 +30,15 @@ public class UserFavoriteTools {
             - bookmark a recipe
             - remember a recipe
             
-            Before calling this tool:
-            - A specific recipe must already be identified.
-            - The recipe ID must come from a previous tool result:
-              - searchRecipes
-              - findRecipeByTitle
-              - listFavorites
+            The recipe ID must come from:
+            - getRecipesByTitle
             
             Never:
             - guess a recipe ID
             - create a recipe ID yourself
             - add a recipe that was not identified by a tool result
             """)
-    public FavoriteResponse addToFavorite(Long recipeId)
-            throws UnauthorizedException {
+    public FavoriteResponse addToFavorite(Long recipeId) throws UnauthorizedException {
 
         return recipeService.addFavorite(
                 userService.getCurrentUserId(),
@@ -63,9 +58,7 @@ public class UserFavoriteTools {
             Before calling this tool:
             - A specific recipe must be identified.
             - The recipe ID must come from:
-              - listFavorites
-              - searchRecipes
-              - findRecipeByTitle
+                - listFavorites
             
             If the user provides only a recipe name:
             - First call listFavorites to find the matching favorite recipe.
@@ -73,8 +66,7 @@ public class UserFavoriteTools {
             
             Never guess or invent a recipe ID.
             """)
-    public void removeFromFavorite(Long recipeId)
-            throws UnauthorizedException {
+    public void removeFromFavorite(Long recipeId) throws UnauthorizedException {
 
         recipeService.removeFavorite(
                 userService.getCurrentUserId(),
@@ -98,8 +90,7 @@ public class UserFavoriteTools {
             - Show recipe titles only.
             - Do not show IDs unless explicitly requested.
             """)
-    public List<RecipeResponse> listFavorites(String search)
-            throws UnauthorizedException {
+    public List<RecipeResponse> listFavorites(String search) throws UnauthorizedException {
 
         Page<RecipeResponse> favorites =
                 recipeService.getFavoriteRecipes(
