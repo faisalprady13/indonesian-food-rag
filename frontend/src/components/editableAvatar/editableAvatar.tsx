@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { updateUserApi } from '@/lib/api.ts';
+import { updateUserApi } from '@/queries';
 import { useAppStore } from '@/store/appStore';
 
 interface EditableAvatarProps {

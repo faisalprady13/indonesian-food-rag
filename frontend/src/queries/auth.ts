@@ -1,4 +1,4 @@
-import { http } from '@/lib/axios.ts';
+import { http } from '@/queries/http.ts';
 import { setToken, clearToken } from '@/lib/token.ts';
 
 export interface CurrentUser {

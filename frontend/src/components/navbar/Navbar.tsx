@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
 import Menu from './menu/Menu.tsx';
-import type { CurrentUser } from '@/lib/api.ts';
+import type { CurrentUser } from '@/queries';
 import Logo from '@/assets/logo.webp';
 
 type NavbarProps = {

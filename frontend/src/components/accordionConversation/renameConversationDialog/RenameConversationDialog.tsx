@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
-import { renameConversation } from '@/lib/api.ts';
+import { renameConversation } from '@/queries';
 import type { Conversation } from '@/types/Chat.ts';
 
 type RenameConversationDialogProps = {

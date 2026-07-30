@@ -6,7 +6,7 @@ import BubbleSpinner from '@/components/chat/BubbleSpinner.tsx';
 import MessageInputGroup from '@/components/chat/MessageInputGroup.tsx';
 import ChatSkeleton from '@/components/skeletons/ChatSkeleton.tsx';
 import type { Conversation, Message as ChatMessage } from '@/types/Chat.ts';
-import { getDetailConversation, sendMessage } from '@/lib/api.ts';
+import { getDetailConversation, sendMessage } from '@/queries';
 
 export default function Chat() {
   const { conversationId: conversationIdParam } = useParams<{ conversationId: string }>();

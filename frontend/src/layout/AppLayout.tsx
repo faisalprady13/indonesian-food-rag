@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from '@/components/navbar/Navbar.tsx';
-import type { CurrentUser } from '@/lib/api.ts';
+import type { CurrentUser } from '@/queries';
 
 type AppLayoutProps = {
   user: CurrentUser;

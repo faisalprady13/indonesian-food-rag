@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input.tsx';
 import Logo from '@/assets/logo.webp';
 import * as React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login, type CurrentUser } from '@/lib/api.ts';
+import { login, type CurrentUser } from '@/queries';
 
 type LoginFormProps = React.ComponentProps<'div'> & {
   onLoginSuccess: () => Promise<CurrentUser>;
