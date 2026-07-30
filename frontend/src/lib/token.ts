@@ -1,13 +1,13 @@
-const TOKEN_KEY = 'auth_token';
+import {TOKEN_KEY} from '@/constants/token.ts';
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY);
 }
 
 export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
 }
