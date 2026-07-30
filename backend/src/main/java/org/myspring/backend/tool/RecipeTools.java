@@ -48,13 +48,17 @@ public class RecipeTools {
             - requests meal ideas
             
             The search is based on recipe similarity.
-            Returns recipes with their IDs.
             
-            After receiving results:
-            - Use the returned recipe IDs for other tools.
-            - Never invent recipe IDs.
+            Returns recipe titles and short summaries.
+            Summaries describe the dish based on ingredients and cooking steps.
+            
+            The limit controls how many recipes are returned:
+            - Use a small limit (3-5) for specific requests.
+            - Use a larger limit (10-20) when the user asks for many ideas.
+            
+            Recipe IDs are internal and must never be shown to the user.
             """)
-    public List<RecipeDto> searchRecipes(String query)
+    public List<RecipeDto> searchRecipes(String query, int limit)
             throws UnauthorizedException {
 
         Long userId = userService.getCurrentUserId();
@@ -63,19 +67,17 @@ public class RecipeTools {
                 userSettingService.findByUserId(userId).getApiKey()
         );
 
-        EmbeddingModel embeddingModel =
-                embeddingModelFactory.create(apiKey, embeddingModelName);
+        EmbeddingModel embeddingModel = embeddingModelFactory.create(apiKey, embeddingModelName);
 
         float[] vector = embeddingModel.embed(query);
 
-        List<Long> recipeIds =
-                embeddingRepository.findSimilarRecipeIds(
-                        VectorConverter.toPgVector(vector),
-                        5
-                );
+        List<Long> recipeIds = embeddingRepository.findSimilarRecipeIds(
+                VectorConverter.toPgVector(vector),
+                limit
+        );
 
         if (recipeIds.isEmpty()) {
-            return new ArrayList<>();
+            return List.of();
         }
 
         return recipeRepository.findAllById(recipeIds)
