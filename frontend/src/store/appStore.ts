@@ -1,4 +1,4 @@
-import type { CurrentUser } from '@/queries';
+import type { CurrentUser } from '@/types/User.ts';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 

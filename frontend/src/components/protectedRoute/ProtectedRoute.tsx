@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import AppSkeleton from '@/components/skeletons/AppSkeleton.tsx';
-import type { CurrentUser } from '@/queries';
+import type { CurrentUser } from '@/types/User.ts';
 
 type ProtectedRouteProps = {
   user: CurrentUser | null | undefined;

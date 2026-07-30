@@ -1,21 +1,6 @@
 import { http } from '@/queries/http.ts';
 import { setToken, clearToken } from '@/lib/token.ts';
-
-export interface CurrentUser {
-  id: number;
-  username: string;
-  fullname: string;
-  email: string;
-  imageUrl: string | null;
-  provider: string | null;
-}
-
-export interface RegisterPayload {
-  username: string;
-  email: string;
-  password: string;
-  fullname: string;
-}
+import type { CurrentUser, RegisterPayload } from '@/types/User.ts';
 
 export async function login(username: string, password: string): Promise<void> {
   const { data: token } = await http.post<string>('/api/auth/login', { username, password });
