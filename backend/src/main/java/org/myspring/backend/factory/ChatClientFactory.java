@@ -49,7 +49,6 @@ public class ChatClientFactory {
                         - Ask clarification questions when required.
                         
                         Entity selection rules:
-                        
                         - When a tool returns multiple matching recipes, do not choose one automatically.
                         - Display the available recipe titles.
                         - Ask the user to select one.
