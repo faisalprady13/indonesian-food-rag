@@ -16,43 +16,90 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class UserFavoriteTools {
+
     private final RecipeService recipeService;
     private final UserService userService;
 
 
     @Tool(description = """
-            Save a recipe to the user's favorite recipes.
-            Use this when the user asks to save, favorite, bookmark,
-            or remember a recipe.
-            Requires the recipe ID.
-            Returns the result of the favorite operation.
+            Adds a recipe to the user's favorite recipes.
+            
+            Use this when the user explicitly wants to:
+            - save a recipe
+            - favorite a recipe
+            - bookmark a recipe
+            - remember a recipe
+            
+            The recipe ID must come from:
+            - getRecipesByTitle
+            
+            Never:
+            - guess a recipe ID
+            - create a recipe ID yourself
+            - add a recipe that was not identified by a tool result
             """)
     public FavoriteResponse addToFavorite(Long recipeId) throws UnauthorizedException {
-        return recipeService.addFavorite(userService.getCurrentUserId(), recipeId);
 
+        return recipeService.addFavorite(
+                userService.getCurrentUserId(),
+                recipeId
+        );
     }
 
+
     @Tool(description = """
-            Remove a recipe from the user's favorite recipes.
-            Use this when the user asks to remove, unfavorite,
-            or delete a recipe from their favorites.
-            Requires the recipe ID.
+            Removes a recipe from the user's favorite recipes.
+            
+            Use this when the user explicitly wants to:
+            - remove a favorite recipe
+            - unfavorite a recipe
+            - delete a recipe from favorites
+            
+            Before calling this tool:
+            - A specific recipe must be identified.
+            - The recipe ID must come from:
+                - listFavorites
+            
+            If the user provides only a recipe name:
+            - First call listFavorites to find the matching favorite recipe.
+            - Then use the returned recipe ID.
+            
+            Never guess or invent a recipe ID.
             """)
     public void removeFromFavorite(Long recipeId) throws UnauthorizedException {
-        recipeService.removeFavorite(userService.getCurrentUserId(), recipeId);
+
+        recipeService.removeFavorite(
+                userService.getCurrentUserId(),
+                recipeId
+        );
     }
+
 
     @Tool(description = """
-            List the user's favorite recipes.
-            Use this when the user asks to see, view, browse,
-            or check their favorite recipes.
-            Optionally filter by a recipe title search term.
-            Returns the recipe titles and IDs.
+            Retrieves the user's favorite recipes.
+            
+            Use this when the user asks to:
+            - see favorites
+            - view saved recipes
+            - browse favorite recipes
+            - check saved recipes
+            
+            Returns recipes with their IDs and titles.
+            
+            When displaying results to the user:
+            - Show recipe titles only.
+            - Do not show IDs unless explicitly requested.
             """)
     public List<RecipeResponse> listFavorites(String search) throws UnauthorizedException {
-        Page<RecipeResponse> favorites = recipeService.getFavoriteRecipes(
-                userService.getCurrentUserId(), 0, 50, search);
+
+        Page<RecipeResponse> favorites =
+                recipeService.getFavoriteRecipes(
+                        userService.getCurrentUserId(),
+                        0,
+                        50,
+                        search
+                );
+
         return favorites.getContent();
     }
-
 }
