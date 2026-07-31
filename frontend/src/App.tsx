@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import ProtectedRoute from '@/components/protectedRoute/ProtectedRoute.tsx';
 import CustomSection from '@/components/customSection/CustomSection.tsx';
 import { setToken } from '@/lib/token.ts';
-import { getMe, getUserSetting, logout } from '@/lib/api.ts';
+import { getMe, getUserSetting, logout } from '@/queries';
 import { useAppStore } from '@/store/appStore.ts';
 import { applyTheme } from '@/lib/theme.ts';
 

@@ -10,7 +10,7 @@ import {
   getRecipes,
   getSelectedRecipe,
   removeFavoriteRecipe,
-} from '@/lib/api.ts';
+} from '@/queries';
 import { PAGE_SIZE } from '@/constants/page.ts';
 
 import { emptyPage, type Page, type Recipe, type RecipeTab } from '@/types/Recipe.ts';

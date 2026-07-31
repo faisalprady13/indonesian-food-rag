@@ -4,7 +4,7 @@ import { Cancel01Icon, Search01Icon } from '@hugeicons/core-free-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input.tsx';
 import RecipeTabs from '@/components/recipeTabs/RecipeTabs.tsx';
-import { autocompleteRecipes } from '@/lib/api.ts';
+import { autocompleteRecipes } from '@/queries';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts';
 
 import type { RecipeSuggestion } from '@/types/Recipe.ts';

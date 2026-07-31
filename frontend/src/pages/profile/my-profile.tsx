@@ -5,7 +5,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
-import { deleteUserApi, logout, updateUserApi, type CurrentUser } from '@/lib/api.ts';
+import { deleteUserApi, logout, updateUserApi } from '@/queries';
+import type { CurrentUser } from '@/types/User.ts';
 import { useAppStore } from '@/store/appStore';
 import { useActionState, useState } from 'react';
 

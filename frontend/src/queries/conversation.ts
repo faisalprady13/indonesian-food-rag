@@ -1,4 +1,4 @@
-import { http } from '@/lib/axios.ts';
+import { http } from '@/queries/http.ts';
 import type { Conversation, Message, MessageRequest } from '@/types/Chat.ts';
 
 export async function sendMessage(messageRequest: MessageRequest): Promise<Message> {

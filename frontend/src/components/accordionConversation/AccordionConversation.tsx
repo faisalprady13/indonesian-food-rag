@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu.tsx';
 import RenameConversationDialog from '@/components/accordionConversation/renameConversationDialog/RenameConversationDialog.tsx';
 import DeleteConversationDialog from '@/components/accordionConversation/deleteConversationDialog/DeleteConversationDialog.tsx';
-import { getConversations } from '@/lib/api.ts';
+import { getConversations } from '@/queries';
 import { cn } from '@/lib/utils';
 import type { Conversation } from '@/types/Chat.ts';
 import ConversationListSkeleton from '@/components/skeletons/ConversationListSkeleton.tsx';
