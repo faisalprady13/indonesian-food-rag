@@ -37,9 +37,8 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(
             @PathVariable Long id,
             @PathVariable String username
-    ) throws UserNotFound {
+    ) throws UserNotFound, IOException {
         userService.deleteUser(id, username);
         return ResponseEntity.ok().build();
     }
-
 }

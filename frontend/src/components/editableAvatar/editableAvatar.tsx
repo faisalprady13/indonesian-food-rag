@@ -1,7 +1,9 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Pencil, Upload, X } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,28 +39,42 @@ export function EditableAvatar({
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = useCallback((file: File | undefined) => {
+  const handleFile = async (file?: File) => {
     if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(file);
-    setFile(file);
-  }, []);
 
-  if (!user) {
-    return null;
-  }
+    try {
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.2,
+        maxWidthOrHeight: 500,
+        initialQuality: 0.8,
+        useWebWorker: true,
+      });
 
-  const handleSave = async () => {
-    if (file && user) {
-      const updatedUser = await updateUserApi(user, file);
-      updateUser(updatedUser);
+      setFile(compressedFile);
+
+      const previewUrl = URL.createObjectURL(compressedFile);
+      setPreview(previewUrl);
+    } catch (error) {
+      console.error(error);
     }
-    setOpen(false);
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: (file: File) => updateUserApi(user!, file),
+    onSuccess: (updatedUser) => {
+      updateUser(updatedUser);
+      setOpen(false);
+    },
+  });
+
+  const handleSave = () => {
+    if (file && user) {
+      saveMutation.mutate(file);
+    }
   };
 
   const openModal = () => {
-    setPreview(user.imageUrl);
+    setPreview(user?.imageUrl ?? null);
     setOpen(true);
   };
 
@@ -74,7 +90,7 @@ export function EditableAvatar({
         )}
       >
         <Avatar className="size-24 border border-border">
-          <AvatarImage src={user.imageUrl ?? '/placeholder.svg'} alt={alt} />
+          <AvatarImage src={user?.imageUrl ?? '/placeholder.svg'} alt={alt} />
           <AvatarFallback className="text-xl">{fallback}</AvatarFallback>
         </Avatar>
         <span className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 transition-opacity group-hover:opacity-100">
@@ -129,17 +145,21 @@ export function EditableAvatar({
               />
             </div>
 
-            {preview && preview !== user.imageUrl && (
+            {preview && preview !== user?.imageUrl && (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setPreview(user.imageUrl)}
+                onClick={() => setPreview(user?.imageUrl ?? null)}
                 className="gap-1"
               >
                 <X className="size-4" />
                 Reset
               </Button>
+            )}
+
+            {saveMutation.isError && (
+              <p className="text-sm text-destructive">Failed to update profile picture</p>
             )}
           </div>
 
@@ -147,8 +167,11 @@ export function EditableAvatar({
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!preview || preview === user.imageUrl}>
-              Save
+            <Button
+              onClick={handleSave}
+              disabled={!preview || preview === user?.imageUrl || saveMutation.isPending}
+            >
+              {saveMutation.isPending ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
