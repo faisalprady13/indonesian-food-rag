@@ -3,6 +3,7 @@ package org.myspring.backend.service;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.myspring.backend.dto.UserDto;
+import org.myspring.backend.dto.response.CloudinaryUploadResponse;
 import org.myspring.backend.exception.UnauthorizedException;
 import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
@@ -54,20 +55,38 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public User updateProfilePic(Long id, UserDto userDto, MultipartFile file) throws IOException, UserNotFound {
+    public User updateProfilePic(Long id, UserDto userDto, MultipartFile file)
+            throws IOException, UserNotFound {
+
         User user = findUserOrThrow(id);
-        String url = cloudinaryService.upload(file);
-        user.update(userDto.fullname(), url);
-        userRepository.save(user);
-        return user;
+        String oldPublicId = user.getProfileImagePublicId();
+
+        CloudinaryUploadResponse uploadResult = cloudinaryService.upload(file);
+        if (oldPublicId != null && !oldPublicId.isBlank()) {
+            cloudinaryService.delete(oldPublicId);
+        }
+
+        user.update(
+                userDto.fullname(),
+                uploadResult.url(),
+                uploadResult.publicId()
+        );
+
+        return userRepository.save(user);
     }
 
     @Transactional
-    public void deleteUser(Long id, String username) throws UserNotFound {
+    public void deleteUser(Long id, String username) throws UserNotFound, IOException {
         User user = findUserOrThrow(id);
-        if (user.getUsername().equals(username)) {
-            userRepository.delete(user);
+        if (!user.getUsername().equals(username)) {
+            return;
         }
+
+        if (user.getProfileImagePublicId() != null && !user.getProfileImagePublicId().isBlank()) {
+            cloudinaryService.delete(user.getProfileImagePublicId());
+        }
+
+        userRepository.delete(user);
     }
 
     public Long getCurrentUserId() throws UnauthorizedException {

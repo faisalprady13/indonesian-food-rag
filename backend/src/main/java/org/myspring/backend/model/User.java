@@ -35,11 +35,14 @@ public class User {
 
     @JsonIgnore
     private String password;
-    
+
     private String provider;
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "profile_image_public_id")
+    private String profileImagePublicId;
 
     @OneToOne(
             mappedBy = "user",
@@ -87,8 +90,9 @@ public class User {
         this.fullname = fullname != null ? fullname : this.fullname;
     }
 
-    public void update(String fullname, String imageUrl) {
+    public void update(String fullname, String imageUrl, String profileImagePublicId) {
         this.fullname = fullname != null ? fullname : this.fullname;
         this.imageUrl = imageUrl != null ? imageUrl : this.imageUrl;
+        this.profileImagePublicId = profileImagePublicId != null ? profileImagePublicId : this.profileImagePublicId;
     }
 }

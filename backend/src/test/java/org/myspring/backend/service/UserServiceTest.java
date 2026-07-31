@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.UserDto;
+import org.myspring.backend.dto.response.CloudinaryUploadResponse;
 import org.myspring.backend.exception.UnauthorizedException;
 import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
@@ -101,17 +102,41 @@ class UserServiceTest {
     }
 
     @Test
-    void updateProfilePic_uploadsFileAndUpdatesFullnameAndImageUrl() throws IOException, UserNotFound {
-        User user = User.builder().id(1L).fullname("Old Name").imageUrl("old-url").build();
+    void updateProfilePic_uploadsFileAndUpdatesFullnameImageUrlAndPublicId_whenNoPreviousImage() throws IOException, UserNotFound {
+        User user = User.builder().id(1L).fullname("Old Name").build();
         UserDto userDto = new UserDto(1L, "New Name");
         MultipartFile file = new MockMultipartFile("file", "profile.png", "image/png", "image-bytes".getBytes());
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(cloudinaryService.upload(file)).thenReturn("https://example.com/new-profile.png");
+        when(cloudinaryService.upload(file))
+                .thenReturn(new CloudinaryUploadResponse("https://example.com/new-profile.png", "profile-images/new"));
+        when(userRepository.save(user)).thenReturn(user);
 
         User result = userService.updateProfilePic(1L, userDto, file);
 
         assertThat(result.getFullname()).isEqualTo("New Name");
         assertThat(result.getImageUrl()).isEqualTo("https://example.com/new-profile.png");
+        assertThat(result.getProfileImagePublicId()).isEqualTo("profile-images/new");
+        verify(userRepository).save(user);
+        verify(cloudinaryService, never()).delete(any());
+    }
+
+    @Test
+    void updateProfilePic_deletesOldImage_whenUserAlreadyHasProfileImage() throws IOException, UserNotFound {
+        User user = User.builder().id(1L).fullname("Old Name")
+                .imageUrl("https://example.com/old-profile.png")
+                .profileImagePublicId("profile-images/old")
+                .build();
+        UserDto userDto = new UserDto(1L, "New Name");
+        MultipartFile file = new MockMultipartFile("file", "profile.png", "image/png", "image-bytes".getBytes());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(cloudinaryService.upload(file))
+                .thenReturn(new CloudinaryUploadResponse("https://example.com/new-profile.png", "profile-images/new"));
+        when(userRepository.save(user)).thenReturn(user);
+
+        User result = userService.updateProfilePic(1L, userDto, file);
+
+        assertThat(result.getProfileImagePublicId()).isEqualTo("profile-images/new");
+        verify(cloudinaryService).delete("profile-images/old");
         verify(userRepository).save(user);
     }
 
@@ -126,23 +151,36 @@ class UserServiceTest {
     }
 
     @Test
-    void deleteUser_deletesUser_whenUsernameMatches() throws UserNotFound {
+    void deleteUser_deletesUser_whenUsernameMatchesAndNoProfileImage() throws UserNotFound, IOException {
         User user = User.builder().id(1L).username("johndoe").build();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         userService.deleteUser(1L, "johndoe");
 
         verify(userRepository).delete(user);
+        verify(cloudinaryService, never()).delete(any());
     }
 
     @Test
-    void deleteUser_doesNotDelete_whenUsernameDoesNotMatch() throws UserNotFound {
+    void deleteUser_deletesProfileImage_whenUserHasOne() throws UserNotFound, IOException {
+        User user = User.builder().id(1L).username("johndoe").profileImagePublicId("profile-images/old").build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        userService.deleteUser(1L, "johndoe");
+
+        verify(cloudinaryService).delete("profile-images/old");
+        verify(userRepository).delete(user);
+    }
+
+    @Test
+    void deleteUser_doesNotDelete_whenUsernameDoesNotMatch() throws UserNotFound, IOException {
         User user = User.builder().id(1L).username("johndoe").build();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         userService.deleteUser(1L, "someoneelse");
 
         verify(userRepository, never()).delete(any());
+        verify(cloudinaryService, never()).delete(any());
     }
 
     @Test
