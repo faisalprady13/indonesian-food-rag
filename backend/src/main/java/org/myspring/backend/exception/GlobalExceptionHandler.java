@@ -14,4 +14,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return "Error: " + except.getLocalizedMessage();
     }
 
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleEmailAlreadyExists(EmailAlreadyExistsException except) {
+        return except.getLocalizedMessage();
+    }
+
 }

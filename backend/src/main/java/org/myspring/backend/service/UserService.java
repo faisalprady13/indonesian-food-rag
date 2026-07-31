@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.myspring.backend.dto.UserDto;
 import org.myspring.backend.dto.response.CloudinaryUploadResponse;
+import org.myspring.backend.exception.EmailAlreadyExistsException;
 import org.myspring.backend.exception.UnauthorizedException;
 import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
@@ -35,6 +36,10 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public User createUser(User newUser) {
+        if (userRepository.existsByEmail(newUser.getEmail())) {
+            throw new EmailAlreadyExistsException("An account with this email already exists");
+        }
+
         newUser.setRole("USER");
 
         UserSetting setting = UserSetting.builder()

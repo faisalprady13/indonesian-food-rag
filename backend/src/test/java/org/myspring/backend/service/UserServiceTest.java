@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.UserDto;
 import org.myspring.backend.dto.response.CloudinaryUploadResponse;
+import org.myspring.backend.exception.EmailAlreadyExistsException;
 import org.myspring.backend.exception.UnauthorizedException;
 import org.myspring.backend.exception.UserNotFound;
 import org.myspring.backend.model.User;
@@ -78,6 +79,15 @@ class UserServiceTest {
         assertThat(result.getUserSetting().getAppTheme()).isEqualTo("dark");
         assertThat(result.getUserSetting().getUser()).isEqualTo(result);
         verify(userRepository).save(newUser);
+    }
+
+    @Test
+    void createUser_throwsEmailAlreadyExists_whenEmailIsTaken() {
+        User newUser = User.builder().username("chef2").email("chef@example.com").build();
+        when(userRepository.existsByEmail("chef@example.com")).thenReturn(true);
+
+        assertThrows(EmailAlreadyExistsException.class, () -> userService.createUser(newUser));
+        verify(userRepository, never()).save(any());
     }
 
     @Test
