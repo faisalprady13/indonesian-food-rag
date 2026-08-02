@@ -30,13 +30,12 @@ public class UserFavoriteTools {
             - bookmark a recipe
             - remember a recipe
             
-            The recipe ID must come from:
-            - getRecipesByTitle
+            The recipeId parameter MUST be the actual database ID retrieved from the getRecipesByTitle tool.
             
-            Never:
-            - guess a recipe ID
-            - create a recipe ID yourself
-            - add a recipe that was not identified by a tool result
+            CRITICAL:
+            - NEVER pass a list index or menu number (like 1, 2, or 3) as the recipeId.
+            - If the user replied with "1", you must look up the actual ID of the recipe that was at position 1 in your previous search results.
+            - Never guess or invent a recipe ID.
             """)
     public FavoriteResponse addToFavorite(Long recipeId) throws UnauthorizedException {
 
