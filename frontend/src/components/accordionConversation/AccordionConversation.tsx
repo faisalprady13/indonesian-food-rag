@@ -1,4 +1,3 @@
-import { Ellipsis, Pin, PinOff } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,12 +7,7 @@ import {
   AccordionTrigger,
   AccordionPanel,
 } from '@/components/ui/accordion.tsx';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu.tsx';
+import ConversationRow from '@/components/accordionConversation/conversationRow/ConversationRow.tsx';
 import RenameConversationDialog from '@/components/accordionConversation/renameConversationDialog/RenameConversationDialog.tsx';
 import DeleteConversationDialog from '@/components/accordionConversation/deleteConversationDialog/DeleteConversationDialog.tsx';
 import { getConversations, updateConversationPinned } from '@/queries';
@@ -70,57 +64,22 @@ export default function AccordionConversation({
     .sort(byNewestFirst);
 
   function renderConversationRow(conversation: Conversation) {
-    const isActive = conversationId === String(conversation.id);
     return (
-      <div
+      <ConversationRow
         key={conversation.id}
-        className={`flex items-center rounded-md text-sm transition-colors ${
-          isActive
-            ? 'bg-muted text-foreground'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-        }`}
-      >
-        <button
-          type="button"
-          onClick={() => handleSelectConversation(conversation.id)}
-          className="min-w-0 flex-1 truncate px-2.5 py-1.5 text-left"
-        >
-          {conversation.title}
-        </button>
-        <button
-          type="button"
-          aria-label={conversation.pinned ? `Unpin ${conversation.title}` : `Pin ${conversation.title}`}
-          onClick={() => togglePinned({ id: conversation.id, pinned: !conversation.pinned })}
-          className="shrink-0 rounded-md p-1 outline-none hover:bg-background focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          {conversation.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
-        </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            aria-label={`Options for ${conversation.title}`}
-            className="mr-1 shrink-0 rounded-md p-1 outline-none hover:bg-background focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            <Ellipsis className="h-4 w-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setRenameTarget(conversation)}>
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive"
-              onClick={() => setDeleteTarget(conversation)}
-            >
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+        conversation={conversation}
+        isActive={conversationId === String(conversation.id)}
+        onSelect={handleSelectConversation}
+        onTogglePinned={(target) => togglePinned({ id: target.id, pinned: !target.pinned })}
+        onRename={setRenameTarget}
+        onDelete={setDeleteTarget}
+      />
     );
   }
 
   return (
     <>
-      <Accordion defaultValue={['pinned', 'conversations']}>
+      <Accordion multiple defaultValue={['pinned', 'conversations']}>
         {pinnedConversations.length > 0 && (
           <AccordionItem value="pinned">
             <AccordionTrigger className={cn(triggerClass, className)}>Pinned</AccordionTrigger>
