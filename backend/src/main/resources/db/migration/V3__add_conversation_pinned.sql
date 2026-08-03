@@ -1,0 +1,2 @@
+ALTER TABLE conversations
+    ADD pinned BOOLEAN NOT NULL DEFAULT FALSE;

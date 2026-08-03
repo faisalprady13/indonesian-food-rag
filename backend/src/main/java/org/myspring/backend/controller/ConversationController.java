@@ -1,6 +1,7 @@
 package org.myspring.backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.myspring.backend.dto.request.UpdatePinnedConversationRequest;
 import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ConversationResponse;
 import org.myspring.backend.model.UserPrincipal;
@@ -41,6 +42,15 @@ public class ConversationController {
             @RequestBody UpdateTitleConversationRequest updateTitleConversationRequest
     ) {
         return ResponseEntity.ok(conversationService.updateConversationTitle(id, updateTitleConversationRequest, principal.user().getId()));
+    }
+
+    @PatchMapping("/{id}/pinned")
+    public ResponseEntity<ConversationResponse> updateConversationPinned(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long id,
+            @RequestBody UpdatePinnedConversationRequest updatePinnedConversationRequest
+    ) {
+        return ResponseEntity.ok(conversationService.updateConversationPinned(id, updatePinnedConversationRequest, principal.user().getId()));
     }
 
     @DeleteMapping("/{id}")

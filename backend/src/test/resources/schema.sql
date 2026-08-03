@@ -74,6 +74,7 @@ create table conversations
     updated_at timestamp(6) not null,
     user_id    bigint       not null,
     title      TEXT,
+    pinned     boolean      not null default false,
     primary key (id)
 );
 

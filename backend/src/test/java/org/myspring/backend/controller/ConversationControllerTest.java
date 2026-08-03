@@ -1,6 +1,7 @@
 package org.myspring.backend.controller;
 
 import org.junit.jupiter.api.Test;
+import org.myspring.backend.dto.request.UpdatePinnedConversationRequest;
 import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ChatMessageResponse;
 import org.myspring.backend.dto.response.ConversationResponse;
@@ -105,7 +106,8 @@ class ConversationControllerTest {
                 LocalDateTime.of(2026, 7, 23, 15, 17, 33)
         );
 
-        return new ConversationResponse(10L, "Culinary Chat Time", List.of(message));
+        LocalDateTime timestamp = LocalDateTime.of(2026, 7, 23, 15, 17, 33);
+        return new ConversationResponse(10L, "Culinary Chat Time", false, timestamp, timestamp, List.of(message));
     }
 
     @Test
@@ -150,7 +152,7 @@ class ConversationControllerTest {
     @Test
     void updateConversationTitle_returnsUpdatedConversation() throws Exception {
         UpdateTitleConversationRequest requestBody = new UpdateTitleConversationRequest("New Title");
-        ConversationResponse updated = new ConversationResponse(10L, "New Title", List.of());
+        ConversationResponse updated = new ConversationResponse(10L, "New Title", false, LocalDateTime.now(), LocalDateTime.now(), List.of());
 
         given(conversationService.updateConversationTitle(eq(10L), eq(requestBody), eq(USER_ID)))
                 .willReturn(updated);
@@ -183,6 +185,47 @@ class ConversationControllerTest {
         UpdateTitleConversationRequest requestBody = new UpdateTitleConversationRequest("New Title");
 
         mockMvc.perform(patch("/api/conversation/{id}", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void updateConversationPinned_returnsUpdatedConversation() throws Exception {
+        UpdatePinnedConversationRequest requestBody = new UpdatePinnedConversationRequest(true);
+        ConversationResponse updated = new ConversationResponse(10L, "Culinary Chat Time", true, LocalDateTime.now(), LocalDateTime.now(), List.of());
+
+        given(conversationService.updateConversationPinned(eq(10L), eq(requestBody), eq(USER_ID)))
+                .willReturn(updated);
+
+        mockMvc.perform(patch("/api/conversation/{id}/pinned", 10L)
+                        .with(user(authenticatedUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.pinned").value(true));
+    }
+
+    @Test
+    void updateConversationPinned_notFound_returns404() throws Exception {
+        UpdatePinnedConversationRequest requestBody = new UpdatePinnedConversationRequest(true);
+
+        given(conversationService.updateConversationPinned(eq(999L), eq(requestBody), anyLong()))
+                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+
+        mockMvc.perform(patch("/api/conversation/{id}/pinned", 999L)
+                        .with(user(authenticatedUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateConversationPinned_withoutAuthentication_isRejected() throws Exception {
+        UpdatePinnedConversationRequest requestBody = new UpdatePinnedConversationRequest(true);
+
+        mockMvc.perform(patch("/api/conversation/{id}/pinned", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestBody)))
                 .andExpect(status().is4xxClientError());

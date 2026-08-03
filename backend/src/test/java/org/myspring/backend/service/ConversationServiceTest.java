@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myspring.backend.dto.request.ChatRequest;
+import org.myspring.backend.dto.request.UpdatePinnedConversationRequest;
 import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ConversationResponse;
 import org.myspring.backend.enums.MessageRole;
@@ -60,7 +61,7 @@ class ConversationServiceTest {
         User user = User.builder().id(1L).build();
         Conversation conversation = newConversation();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(conversationRepository.findAllByUser(user)).thenReturn(List.of(conversation));
+        when(conversationRepository.findAllByUserOrderByUpdatedAtDesc(user)).thenReturn(List.of(conversation));
 
         List<ConversationResponse> result = conversationService.getAllConversationsByUserId(1L);
 
@@ -76,7 +77,7 @@ class ConversationServiceTest {
 
         assertThrows(ResponseStatusException.class,
                 () -> conversationService.getAllConversationsByUserId(999L));
-        verify(conversationRepository, never()).findAllByUser(any());
+        verify(conversationRepository, never()).findAllByUserOrderByUpdatedAtDesc(any());
     }
 
     @Test
@@ -217,6 +218,42 @@ class ConversationServiceTest {
 
         assertThrows(ResponseStatusException.class,
                 () -> conversationService.updateConversationTitle(999L, request, 1L));
+    }
+
+    @Test
+    void updateConversationPinned_updatesPinned_whenFound() {
+        User user = User.builder().id(1L).build();
+        Conversation conversation = newConversation();
+        UpdatePinnedConversationRequest request = new UpdatePinnedConversationRequest(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(conversationRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(conversation));
+
+        ConversationResponse result = conversationService.updateConversationPinned(10L, request, 1L);
+
+        assertThat(result.id()).isEqualTo(10L);
+        assertThat(result.pinned()).isTrue();
+        assertThat(conversation.getPinned()).isTrue();
+    }
+
+    @Test
+    void updateConversationPinned_throwsNotFound_whenUserDoesNotExist() {
+        UpdatePinnedConversationRequest request = new UpdatePinnedConversationRequest(true);
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class,
+                () -> conversationService.updateConversationPinned(10L, request, 999L));
+        verify(conversationRepository, never()).findByIdAndUserId(any(), any());
+    }
+
+    @Test
+    void updateConversationPinned_throwsNotFound_whenConversationDoesNotExist() {
+        User user = User.builder().id(1L).build();
+        UpdatePinnedConversationRequest request = new UpdatePinnedConversationRequest(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(conversationRepository.findByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class,
+                () -> conversationService.updateConversationPinned(999L, request, 1L));
     }
 
     @Test
