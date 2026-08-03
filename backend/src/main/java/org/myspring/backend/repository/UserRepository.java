@@ -11,6 +11,8 @@ import java.util.Set;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 
+    boolean existsByEmail(String email);
+
     @Query("select r.id from User u join u.favoriteRecipes r where u.id = :userId")
     Set<Long> findFavoriteRecipeIds(@Param("userId") Long userId);
 }

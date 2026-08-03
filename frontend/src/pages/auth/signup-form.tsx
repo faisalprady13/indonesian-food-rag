@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input.tsx';
 import Logo from '@/assets/logo.webp';
 import { Link, useNavigate } from 'react-router-dom';
 import * as React from 'react';
+import axios from 'axios';
 import { login, register } from '@/queries';
 import type { CurrentUser } from '@/types/User.ts';
 
@@ -49,8 +50,16 @@ export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
       await login(username, password);
       await onLoginSuccess();
       navigate('/');
-    } catch {
-      setError('Could not create your account. Try a different username.');
+    } catch (err) {
+      if (
+        axios.isAxiosError(err) &&
+        err.response?.status === 409 &&
+        typeof err.response.data === 'string'
+      ) {
+        setError(err.response.data);
+      } else {
+        setError('Could not create your account. Try a different username.');
+      }
     } finally {
       setSubmitting(false);
     }
