@@ -26,10 +26,16 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(
             @NonNull HttpServletRequest request,
-            HttpServletResponse response,
-            Authentication authentication
+            @NonNull HttpServletResponse response,
+            @NonNull Authentication authentication
     ) throws IOException {
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof OAuth2User oAuth2User)) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid authentication principal");
+            return;
+        }
+
         String username = oAuth2User.getName();
         String token = jwtService.generateToken(username);
 
