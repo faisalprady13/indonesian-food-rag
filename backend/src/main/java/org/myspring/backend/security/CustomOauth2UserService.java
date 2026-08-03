@@ -55,7 +55,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
         return buildOAuth2User(provider, oAuth2User, accessToken);
     }
 
-    OAuth2User buildOAuth2User(String provider, OAuth2User oAuth2User, String accessToken) {
+    private OAuth2User buildOAuth2User(String provider, OAuth2User oAuth2User, String accessToken) {
         String email = resolveEmail(provider, oAuth2User, accessToken);
         String username = resolveUsername(provider, oAuth2User, email);
 
