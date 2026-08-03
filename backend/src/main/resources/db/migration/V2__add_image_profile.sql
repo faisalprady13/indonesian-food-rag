@@ -1,2 +1,2 @@
 ALTER TABLE users
-    ADD profile_image_public_id VARCHAR(255);
+    ADD COLUMN IF NOT EXISTS profile_image_public_id VARCHAR(255);

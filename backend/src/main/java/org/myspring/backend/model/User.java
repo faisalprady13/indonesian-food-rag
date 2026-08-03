@@ -67,6 +67,7 @@ public class User {
     )
     private Set<Recipe> favoriteRecipes = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
