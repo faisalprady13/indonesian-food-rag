@@ -64,7 +64,7 @@ class GithubOAuth2ProviderStrategyTest {
     void resolveUsername_returnsLogin() {
         OAuth2User user = user(Map.of("id", 1, "login", "octocat"));
 
-        assertThat(strategy.resolveUsername(user, "octocat@example.com")).isEqualTo("octocat");
+        assertThat(strategy.resolveUsername(user)).isEqualTo("octocat");
     }
 
     @Test

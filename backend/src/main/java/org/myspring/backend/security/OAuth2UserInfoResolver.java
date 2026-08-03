@@ -33,7 +33,7 @@ public class OAuth2UserInfoResolver {
 
         String email = requireEmail(provider, strategy.resolveEmail(oAuth2User, accessToken));
 
-        String username = strategy.resolveUsername(oAuth2User, email);
+        String username = strategy.resolveUsername(oAuth2User);
         String imageUrl = strategy.resolveImageUrl(oAuth2User);
         String fullName = strategy.resolveFullName(oAuth2User);
 

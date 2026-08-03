@@ -8,7 +8,7 @@ public interface OAuth2ProviderStrategy {
 
     String resolveEmail(OAuth2User oAuth2User, String accessToken);
 
-    String resolveUsername(OAuth2User oAuth2User, String email);
+    String resolveUsername(OAuth2User oAuth2User);
 
     String resolveImageUrl(OAuth2User oAuth2User);
 

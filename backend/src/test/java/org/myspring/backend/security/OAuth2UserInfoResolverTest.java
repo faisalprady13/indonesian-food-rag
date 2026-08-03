@@ -20,11 +20,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-/**
- * Tests the resolver's orchestration only — strategy lookup, the "every provider must yield
- * an email" invariant, and attribute assembly. Per-provider quirks belong in each
- * {@link OAuth2ProviderStrategy} implementation's own test, e.g. {@link GithubOAuth2ProviderStrategyTest}.
- */
 @ExtendWith(MockitoExtension.class)
 class OAuth2UserInfoResolverTest {
 
@@ -49,7 +44,7 @@ class OAuth2UserInfoResolverTest {
 
     private void stubGithubStrategy(OAuth2User oAuth2User) {
         when(githubStrategy.resolveEmail(oAuth2User, "token")).thenReturn("octocat@example.com");
-        when(githubStrategy.resolveUsername(oAuth2User, "octocat@example.com")).thenReturn("octocat");
+        when(githubStrategy.resolveUsername(oAuth2User)).thenReturn("octocat");
         when(githubStrategy.resolveImageUrl(oAuth2User)).thenReturn("https://github.com/avatar.png");
         when(githubStrategy.resolveFullName(oAuth2User)).thenReturn("The Octocat");
     }

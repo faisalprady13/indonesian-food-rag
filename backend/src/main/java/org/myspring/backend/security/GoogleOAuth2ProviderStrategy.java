@@ -33,8 +33,8 @@ public class GoogleOAuth2ProviderStrategy implements OAuth2ProviderStrategy {
     }
 
     @Override
-    public String resolveUsername(OAuth2User oAuth2User, String email) {
-        return email;
+    public String resolveUsername(OAuth2User oAuth2User) {
+        return oAuth2User.getAttribute(EMAIL_ATTRIBUTE);
     }
 
     @Override

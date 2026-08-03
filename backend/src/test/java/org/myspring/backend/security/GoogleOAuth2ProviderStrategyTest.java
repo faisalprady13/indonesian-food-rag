@@ -38,9 +38,9 @@ class GoogleOAuth2ProviderStrategyTest {
 
     @Test
     void resolveUsername_returnsEmail() {
-        OAuth2User user = user(Map.of("sub", "1"));
+        OAuth2User user = user(Map.of("sub", "1", "email", "chef@gmail.com"));
 
-        assertThat(strategy.resolveUsername(user, "chef@gmail.com")).isEqualTo("chef@gmail.com");
+        assertThat(strategy.resolveUsername(user)).isEqualTo("chef@gmail.com");
     }
 
     @Test

@@ -35,7 +35,7 @@ public class GithubOAuth2ProviderStrategy implements OAuth2ProviderStrategy {
     }
 
     @Override
-    public String resolveUsername(OAuth2User oAuth2User, String email) {
+    public String resolveUsername(OAuth2User oAuth2User) {
         return oAuth2User.getAttribute(LOGIN_ATTRIBUTE);
     }
 
