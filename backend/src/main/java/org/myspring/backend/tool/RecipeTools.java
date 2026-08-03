@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -38,7 +37,7 @@ public class RecipeTools {
 
 
     @Tool(description = """
-            Searches the recipe database for recipes matching the user's request.
+            Searches the recipe database by general keywords, categories, ingredients, or dietary preferences (e.g., 'healthy', 'chicken', 'quick') and for recipes matching the user's request.
             
             Use this tool when the user:
             - wants recipe recommendations
@@ -47,16 +46,15 @@ public class RecipeTools {
             - searches by dish type
             - requests meal ideas
             
-            The search is based on recipe similarity.
-            
-            Returns recipe titles and short summaries.
-            Summaries describe the dish based on ingredients and cooking steps.
-            
             The limit controls how many recipes are returned:
             - Use a small limit (3-5) for specific requests.
             - Use a larger limit (10-20) when the user asks for many ideas.
             
-            Recipe IDs are internal and must never be shown to the user.
+            Returns recipe titles and short summaries.
+            Summaries describe the dish based on ingredients and cooking steps.
+            
+            ALWAYS use this tool before suggesting a list of recipes to the user.
+            Never invent recipes. Only suggest recipes returned by this tool.
             """)
     public List<RecipeDto> searchRecipes(String query, int limit)
             throws UnauthorizedException {
@@ -94,13 +92,13 @@ public class RecipeTools {
             - the recipe ID is needed but not available
             - the user wants to save or remove a recipe by name
             
-            Returns matching recipes with only their IDs and titles.
+            Returns matching recipes with their database IDs and titles.
             
             If multiple recipes are returned:
-            - Ask the user which recipe they mean.
+            - Present them to the user as a numbered list.
+            - When the user selects a number, YOU MUST map that number back to the actual database ID returned by this tool.
+            - NEVER use the user's menu choice (e.g., 1 or 2) as the recipe ID.
             - Do not choose one automatically.
-            
-            Never invent recipe IDs.
             """)
     public List<RecipeSelectionDto> getRecipesByTitle(String title) {
 
