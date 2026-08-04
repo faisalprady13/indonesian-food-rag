@@ -3,13 +3,13 @@ package org.myspring.backend.controller;
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.request.ChatRequest;
 import org.myspring.backend.dto.response.ChatResponse;
+import org.myspring.backend.dto.response.PageResponse;
 import org.myspring.backend.dto.response.RecipeResponse;
 import org.myspring.backend.dto.response.RecipeDetailResponse;
 import org.myspring.backend.dto.response.RecipeSuggestionResponse;
 import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.service.RecipeService;
 import org.myspring.backend.service.rag.RecipeChatService;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public class RecipeController {
     private final RecipeChatService recipeChatService;
 
     @GetMapping
-    public ResponseEntity<Page<RecipeResponse>> getRecipes(
+    public ResponseEntity<PageResponse<RecipeResponse>> getRecipes(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -33,9 +33,9 @@ public class RecipeController {
             @RequestParam(defaultValue = "asc") String direction,
             @RequestParam(required = false) String search
     ) {
-        return ResponseEntity.ok(
+        return ResponseEntity.ok(PageResponse.from(
                 recipeService.getRecipes(page, size, sortBy, direction, search, principal.user().getId())
-        );
+        ));
     }
 
     @PostMapping("/{id}/favorite")
@@ -57,15 +57,15 @@ public class RecipeController {
     }
 
     @GetMapping("/favorites")
-    public ResponseEntity<Page<RecipeResponse>> getFavoriteRecipes(
+    public ResponseEntity<PageResponse<RecipeResponse>> getFavoriteRecipes(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search
     ) {
-        return ResponseEntity.ok(
+        return ResponseEntity.ok(PageResponse.from(
                 recipeService.getFavoriteRecipes(principal.user().getId(), page, size, search)
-        );
+        ));
     }
 
     @GetMapping("/{id}")
