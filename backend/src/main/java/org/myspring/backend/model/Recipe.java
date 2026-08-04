@@ -29,6 +29,7 @@ public class Recipe {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @OrderBy("id asc")
     private Set<Ingredient> ingredients = new HashSet<>();
 
     @ManyToMany(mappedBy = "favoriteRecipes")
