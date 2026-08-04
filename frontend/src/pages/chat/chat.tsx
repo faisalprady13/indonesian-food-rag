@@ -40,6 +40,7 @@ export default function Chat() {
         createdAt: old?.createdAt ?? reply.createdAt,
         updatedAt: reply.createdAt,
         messages: updatedMessages,
+        pinned: old?.pinned ?? false,
       }));
       setMessages(updatedMessages);
       navigate(`/chat/${reply.conversationId}`, { replace: true });

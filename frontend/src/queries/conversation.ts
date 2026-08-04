@@ -36,3 +36,17 @@ export async function renameConversation(
 export async function deleteConversation(conversationId: number): Promise<void> {
   await http.delete(`/api/conversation/${conversationId}`);
 }
+
+export async function updateConversationPinned(
+  conversationId: number,
+  pinned: boolean,
+): Promise<Conversation> {
+  const { data } = await http.patch<Conversation>(
+    `/api/conversation/${conversationId}/pinned`,
+    {
+      pinned,
+    },
+    { headers: { 'Content-Type': 'application/json' } },
+  );
+  return data;
+}

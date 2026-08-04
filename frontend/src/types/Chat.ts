@@ -3,6 +3,7 @@ export type MessageRole = 'USER' | 'ASSISTANT' | 'SYSTEM';
 export interface Conversation {
   id: number;
   title: string;
+  pinned: boolean;
   createdAt: string;
   updatedAt: string;
   messages: Message[];

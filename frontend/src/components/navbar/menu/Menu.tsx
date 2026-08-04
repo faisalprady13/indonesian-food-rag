@@ -35,7 +35,7 @@ export default function Menu() {
 
             <div className="flex flex-1 flex-col gap-6">
               <section className="flex flex-col gap-1">
-                <h3 className={sectionLabelClass}>Pages</h3>
+                <h3 className={sectionLabelClass}>Menu</h3>
                 <nav className="flex flex-col gap-1">
                   <NavLink to="/" end className={navLinkClass} onClick={() => setOpen(false)}>
                     <HugeiconsIcon icon={HomeIcon} size={18} className="h-4 w-4" />
@@ -43,7 +43,7 @@ export default function Menu() {
                   </NavLink>
                   <NavLink to="/chat" end className={navLinkClass} onClick={() => setOpen(false)}>
                     <HugeiconsIcon icon={AiChat02Icon} className="h-4 w-4" />
-                    New Chat
+                    New Conversation
                   </NavLink>
                 </nav>
               </section>

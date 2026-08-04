@@ -2,6 +2,7 @@ package org.myspring.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.request.ChatRequest;
+import org.myspring.backend.dto.request.UpdatePinnedConversationRequest;
 import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ConversationResponse;
 import org.myspring.backend.model.Conversation;
@@ -30,7 +31,7 @@ public class ConversationService {
                         HttpStatus.NOT_FOUND,
                         "User not found"));
 
-        return conversationRepository.findAllByUser(user)
+        return conversationRepository.findAllByUserOrderByUpdatedAtDesc(user)
                 .stream()
                 .map(ConversationResponse::fromConversationWithoutMessages)
                 .toList();
@@ -99,6 +100,27 @@ public class ConversationService {
                 );
 
         conversation.setTitle(updateTitleConversationRequest.title());
+
+        return ConversationResponse.fromConversationWithoutMessages(conversation);
+    }
+
+    @Transactional
+    public ConversationResponse updateConversationPinned(Long id, UpdatePinnedConversationRequest updatePinnedConversationRequest, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found"));
+
+        Conversation conversation = conversationRepository
+                .findByIdAndUserId(id, user.getId())
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Conversation not found"
+                        )
+                );
+
+        conversation.setPinned(updatePinnedConversationRequest.pinned());
 
         return ConversationResponse.fromConversationWithoutMessages(conversation);
     }

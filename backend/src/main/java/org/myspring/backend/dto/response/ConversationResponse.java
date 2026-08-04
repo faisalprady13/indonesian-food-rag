@@ -1,14 +1,17 @@
 package org.myspring.backend.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import org.myspring.backend.model.Conversation;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public record ConversationResponse(
         Long id,
         String title,
+        Boolean pinned,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
         List<ChatMessageResponse> messages
 ) {
 
@@ -17,6 +20,9 @@ public record ConversationResponse(
         return new ConversationResponse(
                 conversation.getId(),
                 conversation.getTitle(),
+                conversation.getPinned(),
+                conversation.getCreatedAt(),
+                conversation.getUpdatedAt(),
                 conversation.getChatMessages()
                         .stream()
                         .map(ChatMessageResponse::fromChatMessage)
@@ -29,6 +35,9 @@ public record ConversationResponse(
         return new ConversationResponse(
                 conversation.getId(),
                 conversation.getTitle(),
+                conversation.getPinned(),
+                conversation.getCreatedAt(),
+                conversation.getUpdatedAt(),
                 new ArrayList<>()
         );
     }
