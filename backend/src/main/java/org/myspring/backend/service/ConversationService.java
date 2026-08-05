@@ -7,6 +7,7 @@ import org.myspring.backend.dto.request.UpdateTitleConversationRequest;
 import org.myspring.backend.dto.response.ConversationResponse;
 import org.myspring.backend.model.Conversation;
 import org.myspring.backend.model.User;
+import org.myspring.backend.repository.ConversationContextRepository;
 import org.myspring.backend.repository.ConversationRepository;
 import org.myspring.backend.repository.UserRepository;
 import org.myspring.backend.service.rag.TitleGeneratorService;
@@ -22,6 +23,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ConversationService {
     private final ConversationRepository conversationRepository;
+    private final ConversationContextRepository conversationContextRepository;
     private final UserRepository userRepository;
     private final TitleGeneratorService titleGeneratorService;
 
@@ -132,10 +134,12 @@ public class ConversationService {
                         HttpStatus.NOT_FOUND,
                         "User not found"));
 
-        conversationRepository
-                .deleteByIdAndUserId(id, user.getId())
+        conversationRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Conversation not found"));
+
+        conversationContextRepository.deleteByConversationId(id);
+        conversationRepository.deleteByIdAndUserId(id, user.getId());
     }
 }
