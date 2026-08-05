@@ -19,6 +19,7 @@ import org.myspring.backend.service.UserSettingService;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,6 +83,7 @@ class RecipeChatServiceTest {
         when(chatClient.prompt()).thenReturn(requestSpec);
         when(requestSpec.user(userQuestion)).thenReturn(requestSpec);
         when(requestSpec.advisors(any(Consumer.class))).thenReturn(requestSpec);
+        when(requestSpec.toolContext(any())).thenReturn(requestSpec);
         when(requestSpec.call()).thenReturn(callResponseSpec);
         when(callResponseSpec.content()).thenReturn(assistantResponse);
     }
@@ -126,6 +128,26 @@ class RecipeChatServiceTest {
         advisorCaptor.getValue().accept(advisorSpec);
 
         verify(advisorSpec).param("chat_memory_conversation_id", "42");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void askQuestion_passesConversationIdToToolContext() {
+        Conversation conversation = new Conversation();
+        conversation.setId(42L);
+        ChatRequest request = new ChatRequest(42L, "How do I make soto?");
+
+        when(conversationService.getOrCreateConversation(2L, request, "How do I make soto?"))
+                .thenReturn(conversation);
+        stubApiKey(2L, "encrypted-key-2", "sk-test-key-2");
+        stubChatClientCall("How do I make soto?", "Soto recipe details.");
+
+        recipeChatService.askQuestion(2L, request, "How do I make soto?");
+
+        ArgumentCaptor<Map<String, Object>> toolContextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(requestSpec).toolContext(toolContextCaptor.capture());
+
+        assertThat(toolContextCaptor.getValue()).containsEntry("conversationId", "42");
     }
 
     @Test
