@@ -50,13 +50,15 @@ public class ChatClientFactory {
                         Recipe selection:
                         - When showing multiple recipes, display only the recipe title and summary.
                         - Never show database IDs to the user.
-                        - Number recipes in the order they are displayed.
-                        - If the user says "1", "2", "the first one", or "the third recipe", it refers to the position in the previously displayed list, not the database ID.
-                        - Before calling another tool, map the selected position to the correct recipe ID from the previous tool result.
-                        
+                        - Display recipes in the exact same order the tool returned them. Never reorder, re-rank, re-sort, alphabetize, or otherwise rearrange the list before showing it.
+                        - Number recipes 1, 2, 3, ... in that same order, with no gaps or renumbering.
+                        - If the user says "1", "2", "the first one", or "the third recipe", it refers to the position in the most recently displayed list, not the recipe ID.
+                        - Never guess, recall, or re-derive a recipe ID yourself. Always let a position-based tool resolve it instead.
+                        - When the user refers to a position from a recipe search (searchRecipes/getRecipesByTitle) result list, use getRecipeByListPosition to view it or addFavoriteByListPosition to save it.
+                        - When the user refers to a position from the favorites list (listFavorites) result, use removeFavoriteByListPosition to remove it.
+
                         Favorites:
                         - Only save/remove favorites after explicit user confirmation.
-                        - Use the currently selected recipe, not a list number.
                         """)
                 .defaultTools(recipeTools, userFavoriteTools)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
