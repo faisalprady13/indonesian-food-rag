@@ -2,6 +2,7 @@ package org.myspring.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.request.UserSettingRequest;
+import org.myspring.backend.dto.response.UserApiKeyStatusResponse;
 import org.myspring.backend.dto.response.UserSettingResponse;
 import org.myspring.backend.model.UserPrincipal;
 import org.myspring.backend.service.UserSettingService;
@@ -25,6 +26,15 @@ public class UserSettingController {
     ) {
         return ResponseEntity.ok(
                 UserSettingResponse.fromUserSetting(userSettingService.findByUserId(principal.user().getId()))
+        );
+    }
+
+    @GetMapping("/key-status")
+    public ResponseEntity<UserApiKeyStatusResponse> getOpenAiApiKeyStatus(
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(
+                UserApiKeyStatusResponse.fromUserSetting(userSettingService.findByUserId(principal.user().getId()))
         );
     }
 

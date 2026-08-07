@@ -4,11 +4,28 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import BubbleMessage from '@/components/chat/BubbleMessage.tsx';
 import BubbleSpinner from '@/components/chat/BubbleSpinner.tsx';
 import MessageInputGroup from '@/components/chat/MessageInputGroup.tsx';
+import ApiKeyRequiredForm from '@/components/chat/ApiKeyRequiredForm.tsx';
 import ChatSkeleton from '@/components/skeletons/ChatSkeleton.tsx';
 import type { Conversation, Message as ChatMessage } from '@/types/Chat.ts';
-import { getDetailConversation, sendMessage } from '@/queries';
+import { getDetailConversation, getKeyStatus, getUserSetting, sendMessage } from '@/queries';
+import { useAppStore } from '@/store/appStore';
 
 export default function Chat() {
+  const user = useAppStore((state) => state.user);
+  const { data: userSetting } = useQuery({
+    queryKey: ['user-setting'],
+    queryFn: ({ signal }) => getUserSetting(signal),
+    enabled: !!user,
+    retry: false,
+  });
+  const { data: keyStatus, isLoading: keyStatusLoading } = useQuery({
+    queryKey: ['user-setting', 'key-status'],
+    queryFn: ({ signal }) => getKeyStatus(signal),
+    enabled: !!user,
+    retry: false,
+  });
+  const keyAvailable = keyStatus?.isKeyAvailable ?? false;
+
   const { conversationId: conversationIdParam } = useParams<{ conversationId: string }>();
   const conversationId = conversationIdParam ? Number(conversationIdParam) : null;
 
@@ -90,6 +107,20 @@ export default function Chat() {
     }
 
     sendMutation.mutate({ content });
+  }
+
+  if (keyStatusLoading) {
+    return (
+      <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col p-8">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto py-4 my-18">
+          <ChatSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (!keyAvailable) {
+    return <ApiKeyRequiredForm appTheme={userSetting?.appTheme} />;
   }
 
   return (
