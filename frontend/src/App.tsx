@@ -14,16 +14,20 @@ import { setToken } from '@/lib/token.ts';
 import { getMe, getUserSetting, logout } from '@/queries';
 import { useAppStore } from '@/store/appStore.ts';
 import { applyTheme } from '@/lib/theme.ts';
+import { toast } from '@/components/ui/toast.tsx';
 
 function App() {
   const user = useAppStore((state) => state.user);
   const setUser = useAppStore((state) => state.setUser);
+  const justLoggedIn = useAppStore((state) => state.justLoggedIn);
+  const setJustLoggedIn = useAppStore((state) => state.setJustLoggedIn);
   const queryClient = useQueryClient();
 
   async function refreshUser() {
     const currentUser = await getMe();
     setUser(currentUser);
     queryClient.setQueryData(['me'], currentUser);
+    setJustLoggedIn(true);
     return currentUser;
   }
 
@@ -32,19 +36,28 @@ function App() {
     const token = params.get('token');
     if (token) {
       setToken(token);
+      setJustLoggedIn(true);
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, []);
+  }, [setJustLoggedIn]);
 
   const { data: me, isError } = useQuery({ queryKey: ['me'], queryFn: getMe, retry: false });
 
   useEffect(() => {
     if (me) {
+      if (justLoggedIn) {
+        toast.add({
+          type: 'success',
+          title: `Welcome, ${me.fullname}!`,
+          description: 'Glad to have you here, your cooking assistant is ready to help.',
+        });
+        setJustLoggedIn(false);
+      }
       setUser(me);
     } else if (isError) {
       setUser(null);
     }
-  }, [me, isError, setUser]);
+  }, [me, isError, setUser, justLoggedIn, setJustLoggedIn]);
 
   const { data: userSetting } = useQuery({
     queryKey: ['user-setting'],
@@ -62,6 +75,7 @@ function App() {
   function handleLogout() {
     logout();
     setUser(null);
+    toast.add({ type: 'info', title: "You're logged out" });
   }
 
   return (

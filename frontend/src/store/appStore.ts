@@ -7,6 +7,8 @@ interface AppState {
   setUser: (value: CurrentUser | null) => void;
   removeUser: () => void;
   updateUser: (value: Partial<CurrentUser>) => void;
+  justLoggedIn: boolean;
+  setJustLoggedIn: (value: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -21,5 +23,7 @@ export const useAppStore = create<AppState>()(
         if (!state.user) return;
         Object.assign(state.user, data);
       }),
+    justLoggedIn: false,
+    setJustLoggedIn: (value) => set({ justLoggedIn: value }),
   })),
 );
