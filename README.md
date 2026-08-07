@@ -7,6 +7,7 @@ Each user brings their own OpenAI API key (stored encrypted), so there is no sha
 ## Features
 
 - **Recipe RAG chat** — semantic search over recipe embeddings (pgvector) + OpenAI chat completion, with tool calling for recipe search, exact-title lookup, and favorites management.
+- **Conversation context memory** — each conversation remembers the recipe IDs behind the last numbered list it showed (search results, favorites, ...), so follow-ups like "save number 2" resolve correctly without relying on the LLM to recall the mapping. Context is cascade-deleted with its conversation.
 - **Conversations** — persisted chat history per user, with rename, pin/unpin, and delete. Conversation titles are auto-generated from the first message.
 - **Recipe browsing** — paginated, sortable, searchable recipe list with autocomplete and a favorites collection.
 - **Auth** — local email/password (JWT) plus Google and GitHub OAuth2 login.
@@ -19,6 +20,8 @@ Each user brings their own OpenAI API key (stored encrypted), so there is no sha
 **Backend** — Java 25, Spring Boot 4, Spring AI (OpenAI chat + embeddings), Spring Data JPA, Spring Security (JWT + OAuth2), PostgreSQL + pgvector, Flyway, Cloudinary SDK, Lombok.
 
 **Frontend** — React 19, TypeScript, Vite, TanStack Query, React Router, Zustand, Tailwind CSS, Base UI + shadcn-style components.
+
+**Data** — [Supabase](https://supabase.com/) hosts the PostgreSQL database (with the `vector` extension enabled) used for both local and deployed environments.
 
 **Infra** — Docker (multi-stage build: frontend is built and copied into the backend jar as static resources — a single container serves both), GitHub Actions for CI (build + lint) and CD (build/push image, trigger deployment webhook).
 
@@ -37,7 +40,7 @@ docker-compose.yml   Postgres + backend for local/self-hosted runs
 
 - Java 25 and Maven (or use the bundled `./mvnw`)
 - Node.js 22.17.0+ and npm
-- PostgreSQL with the `vector` extension available (the Docker Compose setup handles this for you)
+- PostgreSQL with the `vector` extension available — the Docker Compose setup handles this for local runs; the hosted deployment uses a [Supabase](https://supabase.com/) Postgres instance
 - OAuth2 app credentials (Google and/or GitHub) if you want social login
 - A Cloudinary account if you want profile picture uploads to work
 
@@ -47,7 +50,7 @@ Copy `.env.example` to `.env` and fill it in:
 
 | Variable | Purpose |
 |---|---|
-| `POSTGRES_DB`, `POSTGRES_DB_URL`, `POSTGRES_DB_USER`, `POSTGRES_DB_PASSWORD` | Database connection |
+| `POSTGRES_DB`, `POSTGRES_DB_URL`, `POSTGRES_DB_USER`, `POSTGRES_DB_PASSWORD` | Database connection (point these at a Supabase connection string for a hosted Postgres instance, or at the Docker Compose Postgres for local runs) |
 | `GITHUB_ID`, `GITHUB_SECRET` | GitHub OAuth2 app credentials |
 | `GOOGLE_ID`, `GOOGLE_SECRET` | Google OAuth2 app credentials |
 | `FRONTEND_URL` | Frontend origin, used for OAuth2 redirect/CORS |
@@ -123,3 +126,7 @@ Schema is managed with Flyway (`backend/src/main/resources/db/migration`); Hiber
 
 - **CI** (`.github/workflows/ci.yml`) — on push/PR to `main`: builds the backend with Maven and lints/builds the frontend.
 - **CD** (`.github/workflows/cd.yml`) — on push to `main`: builds and pushes the Docker image, then triggers a deployment webhook.
+
+## Acknowledgements
+
+Recipe data (titles, ingredients, instructions, and images) used to seed the `recipes`/`ingredients` tables comes from the [Food Ingredients and Recipe Dataset with Images](https://www.kaggle.com/datasets/pes12017000148/food-ingredients-and-recipe-dataset-with-images) on Kaggle, licensed under [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
