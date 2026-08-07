@@ -8,3 +8,7 @@ export interface UserSettingRequest {
   appTheme: AppTheme;
   apiKey?: string;
 }
+
+export interface UserApiKeyStatus {
+  isKeyAvailable: boolean;
+}
