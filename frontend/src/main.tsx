@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import App from './App.tsx';
 import { applyTheme, getStoredTheme } from './lib/theme.ts';
+import { Toaster } from './components/ui/toast.tsx';
 
 applyTheme(getStoredTheme());
 
@@ -21,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <App />
+        <Toaster>
+          <App />
+        </Toaster>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,
