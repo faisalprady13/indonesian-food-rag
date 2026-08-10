@@ -14,7 +14,6 @@ import org.myspring.backend.enums.MessageRole;
 import org.myspring.backend.model.ChatMessage;
 import org.myspring.backend.model.Conversation;
 import org.myspring.backend.model.User;
-import org.myspring.backend.repository.ConversationContextRepository;
 import org.myspring.backend.repository.ConversationRepository;
 import org.myspring.backend.repository.UserRepository;
 import org.myspring.backend.service.rag.TitleGeneratorService;
@@ -38,9 +37,6 @@ class ConversationServiceTest {
     private ConversationRepository conversationRepository;
 
     @Mock
-    private ConversationContextRepository conversationContextRepository;
-
-    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -59,7 +55,6 @@ class ConversationServiceTest {
     void setUp() {
         conversationService = new ConversationService(
                 conversationRepository,
-                conversationContextRepository,
                 userRepository,
                 titleGeneratorService
         );
@@ -266,7 +261,7 @@ class ConversationServiceTest {
     }
 
     @Test
-    void deleteConversationById_deletesConversationContextThenConversation_whenFound() {
+    void deleteConversationById_deletesConversation_whenFound() {
         User user = User.builder().id(1L).build();
         Conversation conversation = newConversation();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -274,7 +269,6 @@ class ConversationServiceTest {
 
         conversationService.deleteConversationById(10L, 1L);
 
-        verify(conversationContextRepository).deleteByConversationId(10L);
         verify(conversationRepository).deleteByIdAndUserId(10L, 1L);
     }
 
@@ -285,7 +279,6 @@ class ConversationServiceTest {
         assertThrows(ResponseStatusException.class,
                 () -> conversationService.deleteConversationById(10L, 999L));
         verify(conversationRepository, never()).findByIdAndUserId(any(), any());
-        verify(conversationContextRepository, never()).deleteByConversationId(any());
         verify(conversationRepository, never()).deleteByIdAndUserId(any(), any());
     }
 
@@ -297,7 +290,6 @@ class ConversationServiceTest {
 
         assertThrows(ResponseStatusException.class,
                 () -> conversationService.deleteConversationById(999L, 1L));
-        verify(conversationContextRepository, never()).deleteByConversationId(any());
         verify(conversationRepository, never()).deleteByIdAndUserId(any(), any());
     }
 }

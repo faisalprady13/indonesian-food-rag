@@ -122,6 +122,6 @@ alter table if exists conversations
 alter table if exists messages
     add constraint FK1w9p5nfnr9wig1nnxmk8lkylq foreign key (conversation_id) references conversations;
 alter table if exists conversation_contexts
-    add constraint fk_conversation_contexts_conversation foreign key (conversation_id) references conversations;
+    add constraint fk_conversation_contexts_conversation foreign key (conversation_id) references conversations on delete cascade;
 alter table if exists conversation_context_recipe_ids
-    add constraint fk_conversation_context_recipe_ids_context foreign key (conversation_context_id) references conversation_contexts;
+    add constraint fk_conversation_context_recipe_ids_context foreign key (conversation_context_id) references conversation_contexts on delete cascade;

@@ -9,6 +9,4 @@ import java.util.Optional;
 public interface ConversationContextRepository extends JpaRepository<ConversationContext, Long> {
 
     Optional<ConversationContext> findByConversationIdAndListType(Long conversationId, RecipeListType listType);
-
-    void deleteByConversationId(Long conversationId);
 }
