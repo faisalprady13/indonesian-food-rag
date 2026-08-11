@@ -116,6 +116,7 @@ All endpoints below are under `/api`. `/api/auth/register`, `/api/auth/login`, a
 
 **User settings** — `/api/user-setting`
 - `GET /api/user-setting` — get theme/settings
+- `GET /api/user-setting/key-status` — whether the user has an OpenAI API key stored, without exposing it
 - `PUT /api/user-setting/` — update theme and/or OpenAI API key
 
 ## Database migrations
