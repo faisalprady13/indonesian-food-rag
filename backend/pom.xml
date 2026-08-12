@@ -11,6 +11,13 @@
     <properties>
         <java.version>25</java.version>
         <sonar.organization>java-bootcamp</sonar.organization>
+        <sonar.coverage.exclusions>
+            **/model/**,
+            **/entity/**,
+            **/repository/**,
+            **/dto/**
+            **/enums/**
+        </sonar.coverage.exclusions>
     </properties>
     <groupId>org.my-spring</groupId>
     <artifactId>backend</artifactId>
