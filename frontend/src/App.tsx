@@ -6,6 +6,7 @@ import { SignupForm } from '@/pages/auth/signup-form.tsx';
 import MyProfile from '@/pages/profile/my-profile.tsx';
 import Chat from '@/pages/chat/chat.tsx';
 import Home from '@/pages/Home.tsx';
+import Presentation from '@/pages/Presentation.tsx';
 import AppLayout from '@/layout/AppLayout.tsx';
 import { useEffect } from 'react';
 import ProtectedRoute from '@/components/protectedRoute/ProtectedRoute.tsx';
@@ -100,6 +101,7 @@ function App() {
           </div>
         }
       />
+      <Route path="/presentation" element={<Presentation />} />
       <Route element={<ProtectedRoute user={user} />}>
         <Route element={<AppLayout user={user!} onLogout={handleLogout} />}>
           <Route index element={<Home />} />

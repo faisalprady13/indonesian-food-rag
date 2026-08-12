@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Food RAG — Project Overview</title>
+<style>
+  :root {
+    --bg: #fbf6ee;
+    --bg-alt: #f3e9d7;
+    --ink: #2b241c;
+    --ink-soft: #5c5142;
+    --line: #e3d4b8;
+    --card: #ffffff;
+    --accent: #c1622d;       /* terracotta */
+    --accent-ink: #ffffff;
+    --accent-soft: #f3d9c4;
+    --olive: #5f6b3e;        /* green accent */
+    --olive-soft: #e3e8d4;
+    --turmeric: #d99c2b;     /* yellow accent */
+    --turmeric-soft: #f7e6bf;
+    --shadow: 0 1px 2px rgba(43, 36, 28, 0.06), 0 8px 24px rgba(43, 36, 28, 0.06);
+    --radius: 16px;
+    font-synthesis: none;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, "Segoe UI", ui-serif, serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sans {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  section {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 4.5rem 1.75rem;
+  }
+
+  section + section {
+    border-top: 1px solid var(--line);
+  }
+
+  h1, h2, h3, h4 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .eyebrow {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0 0 0.9rem;
+  }
+
+  p { margin: 0.75rem 0 0; }
+
+  .lede {
+    font-size: 1.15rem;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding-top: 5.5rem;
+    padding-bottom: 3.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-decor {
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--turmeric-soft), transparent 70%);
+    z-index: 0;
+  }
+
+  .hero-inner { position: relative; z-index: 1; }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    line-height: 1.05;
+    max-width: 18ch;
+  }
+
+  .hero .tagline {
+    font-size: 1.3rem;
+    color: var(--ink-soft);
+    margin-top: 1.1rem;
+    max-width: 46ch;
+  }
+
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.8rem;
+  }
+
+  .pill {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+  }
+
+  .pill.accent { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .pill.olive { background: var(--olive-soft); color: var(--olive); border-color: transparent; }
+  .pill.turmeric { background: var(--turmeric-soft); color: #8a5f14; border-color: transparent; }
+
+  /* ---------- Section headers ---------- */
+  .section-head { max-width: 62ch; margin-bottom: 2.75rem; }
+  .section-head h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
+
+  /* ---------- Feature cards ---------- */
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.6rem 1.6rem 1.75rem;
+    box-shadow: var(--shadow);
+  }
+
+  .card .icon {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .card h3 {
+    font-size: 1.08rem;
+  }
+
+  .card p { color: var(--ink-soft); font-size: 0.98rem; }
+
+  /* ---------- Architecture diagram ---------- */
+  .diagram {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 2.25rem 1.5rem;
+    box-shadow: var(--shadow);
+  }
+
+  .diagram-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .diagram-node {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    flex: 1 1 150px;
+    min-width: 140px;
+    max-width: 190px;
+    border-radius: 12px;
+    padding: 1rem 0.9rem;
+    text-align: center;
+    border: 1.5px solid var(--line);
+    background: var(--bg-alt);
+  }
+
+  .diagram-node .label {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--ink);
+  }
+
+  .diagram-node .sub {
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    margin-top: 0.3rem;
+  }
+
+  .diagram-node.hi-accent { background: var(--accent-soft); border-color: var(--accent); }
+  .diagram-node.hi-olive { background: var(--olive-soft); border-color: var(--olive); }
+  .diagram-node.hi-turmeric { background: var(--turmeric-soft); border-color: var(--turmeric); }
+
+  .diagram-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    font-size: 1.3rem;
+    flex: 0 0 auto;
+    padding: 0 0.1rem;
+  }
+
+  .diagram-caption {
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-top: 1.5rem;
+  }
+
+  .stack-branch {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.6rem;
+  }
+
+  .stack-branch svg { display: block; }
+
+  /* ---------- Deep dive ---------- */
+  .deepdive {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .feature-block {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.75rem 1.85rem 2rem;
+  }
+
+  .feature-block h3 {
+    font-size: 1.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .feature-block h3 .n {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .whw {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.1rem;
+    margin-top: 1.25rem;
+  }
+
+  .whw > div {
+    border-left: 3px solid var(--line);
+    padding-left: 0.9rem;
+  }
+
+  .whw .tag {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+
+  .whw div.what { border-color: var(--accent); }
+  .whw div.how { border-color: var(--olive); }
+  .whw div.why { border-color: var(--turmeric); }
+
+  .whw p { font-size: 0.95rem; margin-top: 0.35rem; }
+
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    padding: 0.1rem 0.4rem;
+    border-radius: 5px;
+    font-size: 0.85em;
+    color: var(--ink);
+  }
+
+  /* ---------- Decisions ---------- */
+  .decision {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem 1.6rem;
+  }
+
+  .decision .num {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--accent-soft);
+    -webkit-text-stroke: 1.5px var(--accent);
+    line-height: 1;
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+
+  .decision h3 { font-size: 1.02rem; }
+  .decision p { font-size: 0.94rem; color: var(--ink-soft); }
+
+  /* ---------- Flow ---------- */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-step {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr;
+    gap: 1rem;
+  }
+
+  .flow-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .flow-dot {
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.95rem;
+  }
+
+  .flow-line {
+    width: 2px;
+    flex: 1;
+    background: var(--line);
+    margin: 0.2rem 0;
+  }
+
+  .flow-step:last-child .flow-line { display: none; }
+
+  .flow-body { padding-bottom: 2.1rem; }
+
+  .flow-body .who {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .flow-body h4 { font-size: 1.05rem; margin-top: 0.25rem; }
+  .flow-body p { font-size: 0.95rem; color: var(--ink-soft); margin-top: 0.3rem; }
+
+  /* ---------- Stack ---------- */
+  .stack-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .stack-card h4 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 0.9rem;
+  }
+
+  .stack-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .stack-card li {
+    font-size: 0.95rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px dashed var(--line);
+  }
+
+  .stack-card li:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .stack-card li b { display: block; color: var(--ink); }
+  .stack-card li span { color: var(--ink-soft); font-size: 0.87rem; }
+
+  /* ---------- Takeaways ---------- */
+  .takeaways {
+    background: var(--olive);
+    color: #f3f1e6;
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+  }
+
+  .takeaways .section-head h2 { color: #fff; }
+  .takeaways .eyebrow { color: var(--turmeric-soft); }
+
+  .takeaway-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .takeaway-list li {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    font-size: 0.98rem;
+  }
+
+  .takeaway-list li b {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--turmeric-soft);
+    margin-bottom: 0.4rem;
+  }
+
+  footer {
+    text-align: center;
+    padding: 2.5rem 1.75rem 4rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 640px) {
+    section { padding: 3rem 1.25rem; }
+    .diagram-row { flex-direction: column; align-items: center; }
+    .diagram-arrow { transform: rotate(90deg); padding: 0.2rem 0; }
+    .diagram-node { max-width: 100%; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-decor" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <p class="eyebrow sans">Project overview</p>
+    <h1>Food RAG</h1>
+    <p class="tagline">A full-stack chatbot that lets you talk to a recipe database in plain language — search, ask questions, and manage favorites, powered by retrieval-augmented generation.</p>
+    <div class="pill-row">
+      <span class="pill accent">React + Spring Boot</span>
+      <span class="pill olive">Postgres + pgvector</span>
+      <span class="pill turmeric">OpenAI, bring-your-own-key</span>
+      <span class="pill">JWT + OAuth2</span>
+      <span class="pill">Single Docker image</span>
+    </div>
+  </div>
+</section>
+
+<section id="what">
+  <div class="section-head">
+    <p class="eyebrow sans">What it does</p>
+    <h2>A cooking assistant that actually knows the recipe book</h2>
+    <p class="lede">Instead of a generic chatbot, Food RAG grounds every answer in a real, searchable recipe collection stored in Postgres — so it can recommend, explain, and act on real dishes rather than inventing them.</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="icon">💬</div>
+      <h3>Chat with a recipe assistant</h3>
+      <p>Ask for ideas in natural language — "something quick with chicken and rice" — and get real recipes from the database, not hallucinated ones.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🧠</div>
+      <h3>Remembers what it just showed you</h3>
+      <p>Say "save the second one" and it knows exactly which recipe you mean, because the app tracks the last list it displayed per conversation.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🗂️</div>
+      <h3>Conversation history</h3>
+      <p>Every chat is saved, renameable, and pinnable, with an auto-generated title — so past cooking ideas are easy to find again.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📖</div>
+      <h3>Browse & favorite recipes</h3>
+      <p>A paginated, sortable, searchable recipe list with autocomplete, plus a personal favorites collection — outside the chat, too.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔐</div>
+      <h3>Flexible sign-in</h3>
+      <p>Email/password, or one-click Google and GitHub login, all backed by the same JWT-secured API.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔑</div>
+      <h3>Bring your own OpenAI key</h3>
+      <p>Each user stores their own encrypted API key, so there's no shared LLM bill — usage and cost stay with whoever is chatting.</p>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="section-head">
+    <p class="eyebrow sans">How it works</p>
+    <h2>One request, five layers</h2>
+    <p class="lede">The frontend is a single-page app that talks to one Spring Boot API. That API authenticates the request, retrieves relevant recipes from Postgres, and lets an LLM reason over them before answering.</p>
+  </div>
+  <div class="diagram">
+    <div class="diagram-row">
+      <div class="diagram-node">
+        <div class="label">Browser (React)</div>
+        <div class="sub">Chat UI, recipe list, auth forms</div>
+      </div>
+      <div class="diagram-arrow">→</div>
+      <div class="diagram-node hi-accent">
+        <div class="label">Spring Boot API</div>
+        <div class="sub">JWT/OAuth2 filter, REST controllers</div>
+      </div>
+      <div class="diagram-arrow">→</div>
+      <div class="diagram-node hi-olive">
+        <div class="label">RAG + Tool Calling</div>
+        <div class="sub">Spring AI ChatClient, per-user OpenAI key</div>
+      </div>
+      <div class="diagram-arrow">→</div>
+      <div class="diagram-node hi-turmeric">
+        <div class="label">Postgres + pgvector</div>
+        <div class="sub">Recipes, embeddings, chat memory</div>
+      </div>
+    </div>
+    <div class="diagram-caption sans">All four layers ship in one Docker image — the API server also serves the built React app as static files, including this page.</div>
+  </div>
+</section>
+
+<section id="deepdive">
+  <div class="section-head">
+    <p class="eyebrow sans">Feature deep dive</p>
+    <h2>The parts worth explaining in detail</h2>
+  </div>
+  <div class="deepdive">
+    <div class="feature-block">
+      <h3><span class="n">01</span> Recipe RAG chat with tool calling</h3>
+      <div class="whw">
+        <div class="what">
+          <div class="tag sans">What</div>
+          <p>Users ask cooking questions in plain English and get answers grounded in the actual recipe catalog, not the model's imagination.</p>
+        </div>
+        <div class="how">
+          <div class="tag sans">How</div>
+          <p>The question is embedded and matched against recipe vectors in <code>pgvector</code>. Spring AI's <code>ChatClient</code> exposes this search, an exact-title lookup, and favorites management as callable <b>tools</b>, and the model decides when to call them.</p>
+        </div>
+        <div class="why">
+          <div class="tag sans">Why</div>
+          <p>Retrieval keeps answers factual, and tool calling lets the same conversational interface actually take action — search, look up, and save — instead of only describing what it would do.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-block">
+      <h3><span class="n">02</span> Conversation context memory</h3>
+      <div class="whw">
+        <div class="what">
+          <div class="tag sans">What</div>
+          <p>Follow-ups like "save number 2" or "tell me more about the third one" work correctly, referring to whatever list was just shown.</p>
+        </div>
+        <div class="how">
+          <div class="tag sans">How</div>
+          <p>Whenever a tool returns a numbered list, <code>RecipeSelectionCacheService</code> stores the position → recipe ID mapping against the conversation. A later tool call (<code>getRecipeByListPosition</code>, <code>addFavoriteByListPosition</code>) resolves the position server-side. This context row cascade-deletes with its conversation.</p>
+        </div>
+        <div class="why">
+          <div class="tag sans">Why</div>
+          <p>LLMs are unreliable at recalling or inventing database IDs across turns. Resolving positions in the backend — rather than trusting the model to remember an ID — removes an entire class of "saved the wrong recipe" bugs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-block">
+      <h3><span class="n">03</span> Bring-your-own OpenAI key</h3>
+      <div class="whw">
+        <div class="what">
+          <div class="tag sans">What</div>
+          <p>Every user supplies and manages their own OpenAI API key from Settings; there is no app-wide OpenAI billing.</p>
+        </div>
+        <div class="how">
+          <div class="tag sans">How</div>
+          <p>The key is encrypted at rest (<code>ApiKeyEncryptionService</code>). On each chat request, the backend decrypts it and uses <code>ChatClientFactory</code> to build a fresh, per-request OpenAI chat client and embedding model with that key.</p>
+        </div>
+        <div class="why">
+          <div class="tag sans">Why</div>
+          <p>It removes a shared-cost/rate-limit bottleneck and keeps each user's usage isolated and billed to them, which matters for a project without a business model behind it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-block">
+      <h3><span class="n">04</span> Unified auth for local + social login</h3>
+      <div class="whw">
+        <div class="what">
+          <div class="tag sans">What</div>
+          <p>Users can sign up with email/password or log in instantly via Google or GitHub.</p>
+        </div>
+        <div class="how">
+          <div class="tag sans">How</div>
+          <p>Spring Security runs a stateless filter chain: a custom JWT filter handles local sessions, while an <code>OAuth2ProviderStrategy</code> per provider normalizes Google/GitHub profile data into the same user model before issuing the same kind of JWT.</p>
+        </div>
+        <div class="why">
+          <div class="tag sans">Why</div>
+          <p>Both login paths converge on one token format and one <code>/api/**</code> authorization rule, so the rest of the app never needs to know how a user signed in.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <div class="section-head">
+    <p class="eyebrow sans">Technical decisions</p>
+    <h2>Choices worth calling out</h2>
+  </div>
+  <div class="grid">
+    <div class="decision">
+      <span class="num">1</span>
+      <h3>Postgres + pgvector over a separate vector database</h3>
+      <p>Recipe rows and their embeddings live in the same database, so similarity search and relational queries (pagination, favorites, joins) share one store and one transaction boundary instead of two systems to keep in sync.</p>
+    </div>
+    <div class="decision">
+      <span class="num">2</span>
+      <h3>Server-side position resolution, not model memory</h3>
+      <p>Rather than asking the LLM to track which recipe "number 2" refers to, the backend caches list positions per conversation. This trades a small amount of extra state for much more reliable multi-turn behavior.</p>
+    </div>
+    <div class="decision">
+      <span class="num">3</span>
+      <h3>Per-user, per-request LLM clients</h3>
+      <p>A new <code>ChatClient</code> is built per chat request from the caller's decrypted key, instead of one shared client. This keeps API keys out of any singleton or cache and ties usage directly to the requesting user.</p>
+    </div>
+    <div class="decision">
+      <span class="num">4</span>
+      <h3>Database-backed chat memory</h3>
+      <p>Conversation history for the LLM (<code>DatabaseChatMemoryRepository</code>) is persisted in Postgres via Spring AI's memory advisor, not kept in-process — so conversations survive restarts and scale beyond a single server instance.</p>
+    </div>
+    <div class="decision">
+      <span class="num">5</span>
+      <h3>Stateless JWT security throughout</h3>
+      <p><code>SessionCreationPolicy.STATELESS</code> plus a single JWT filter means the API never holds server-side session state, keeping the deployment simple to scale horizontally.</p>
+    </div>
+    <div class="decision">
+      <span class="num">6</span>
+      <h3>One container for frontend and backend</h3>
+      <p>A multi-stage Docker build compiles the React app and copies its output into the Spring Boot jar's static resources. One image, one port, no CORS configuration to maintain between separate frontend/backend deployments.</p>
+    </div>
+  </div>
+</section>
+
+<section id="flow">
+  <div class="section-head">
+    <p class="eyebrow sans">Example flow</p>
+    <h2>"Save the second one to my favorites"</h2>
+    <p class="lede">A single follow-up message that touches almost every layer of the system — chat memory, vector search, tool calling, and position resolution.</p>
+  </div>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-marker"><div class="flow-dot">1</div><div class="flow-line"></div></div>
+      <div class="flow-body">
+        <div class="who sans">Frontend</div>
+        <h4>User sends a chat message</h4>
+        <p>The Chat page posts the message to <code>POST /api/recipe/ask</code> with the current <code>conversationId</code> (or none, for a new chat).</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-marker"><div class="flow-dot">2</div><div class="flow-line"></div></div>
+      <div class="flow-body">
+        <div class="who sans">API</div>
+        <h4>Request is authenticated and routed</h4>
+        <p>The JWT filter verifies the user, and <code>RecipeChatService</code> loads or creates the conversation and decrypts the user's stored OpenAI key.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-marker"><div class="flow-dot">3</div><div class="flow-line"></div></div>
+      <div class="flow-body">
+        <div class="who sans">LLM + tools</div>
+        <h4>The model decides which tool to call</h4>
+        <p>With the conversation ID passed in as tool context, the model calls <code>getRecipeByListPosition(2)</code> to resolve "the second one" from the last list it showed.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-marker"><div class="flow-dot">4</div><div class="flow-line"></div></div>
+      <div class="flow-body">
+        <div class="who sans">Backend logic</div>
+        <h4>Position resolves to a real recipe</h4>
+        <p><code>RecipeSelectionCacheService</code> looks up position 2 for that conversation, returns the actual recipe ID, and the model then calls <code>addFavoriteByListPosition(2)</code> to save it.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-marker"><div class="flow-dot">5</div></div>
+      <div class="flow-body">
+        <div class="who sans">Response</div>
+        <h4>Confirmation flows back to the chat</h4>
+        <p>The assistant's reply and the user's message are saved to Postgres, and the UI appends the confirmation — the recipe now shows up in Favorites.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="section-head">
+    <p class="eyebrow sans">Tech stack</p>
+    <h2>What it's built with</h2>
+  </div>
+  <div class="stack-grid">
+    <div class="stack-card card">
+      <h4>Frontend</h4>
+      <ul>
+        <li><b>React 19 + TypeScript</b><span>Component-based SPA</span></li>
+        <li><b>Vite</b><span>Dev server & build tooling</span></li>
+        <li><b>TanStack Query</b><span>Server-state fetching & caching</span></li>
+        <li><b>Zustand</b><span>Lightweight client state (current user, UI flags)</span></li>
+        <li><b>React Router</b><span>Client-side routing</span></li>
+        <li><b>Tailwind CSS + Base UI</b><span>Styling and accessible components</span></li>
+      </ul>
+    </div>
+    <div class="stack-card card">
+      <h4>Backend</h4>
+      <ul>
+        <li><b>Java 25 + Spring Boot 4</b><span>REST API</span></li>
+        <li><b>Spring AI</b><span>OpenAI chat/embedding clients, tool calling, chat memory</span></li>
+        <li><b>Spring Data JPA</b><span>Persistence layer</span></li>
+        <li><b>Spring Security</b><span>JWT + OAuth2 (Google, GitHub)</span></li>
+        <li><b>Flyway</b><span>Versioned schema migrations</span></li>
+      </ul>
+    </div>
+    <div class="stack-card card">
+      <h4>Data</h4>
+      <ul>
+        <li><b>PostgreSQL</b><span>Hosted on Supabase</span></li>
+        <li><b>pgvector</b><span>Recipe embedding similarity search</span></li>
+      </ul>
+    </div>
+    <div class="stack-card card">
+      <h4>Infrastructure & integrations</h4>
+      <ul>
+        <li><b>Docker</b><span>Multi-stage build, single runtime image</span></li>
+        <li><b>GitHub Actions</b><span>CI (build + lint) and CD (build/push + deploy webhook)</span></li>
+        <li><b>Cloudinary</b><span>Profile picture uploads</span></li>
+        <li><b>OpenAI API</b><span>Chat completion & embeddings, per user</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="section-head">
+    <p class="eyebrow sans">Takeaways</p>
+    <h2>What to remember</h2>
+  </div>
+  <div class="takeaways">
+    <ul class="takeaway-list">
+      <li><b>It's RAG, not just chat</b>Every recipe answer is grounded in real pgvector search results, not model imagination.</li>
+      <li><b>Tools do the acting</b>Search, lookup, and favorites are model-callable tools — the chat interface can take real actions on the database.</li>
+      <li><b>State lives in the backend</b>Position memory and chat history are server-persisted, so multi-turn conversations stay reliable across restarts.</li>
+      <li><b>Cost follows the user</b>The bring-your-own-key design means there's no shared LLM bill to manage.</li>
+      <li><b>One image to deploy</b>Frontend and backend ship together, keeping the operational surface small.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  Food RAG — a full-stack recipe RAG chatbot · overview generated from the project source
+</footer>
+
+</body>
+</html>
