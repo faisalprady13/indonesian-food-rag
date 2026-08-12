@@ -8,8 +8,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-//TODO: this is for learning,
-// refactor with VectorStore or spring QuestionAnswerAdvisor later
 public interface RecipeEmbeddingRepository
         extends JpaRepository<RecipeEmbedding, Long> {
 

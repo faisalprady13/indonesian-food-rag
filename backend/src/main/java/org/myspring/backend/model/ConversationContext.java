@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.myspring.backend.enums.RecipeListType;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,6 @@ public class ConversationContext {
     @PrePersist
     @PreUpdate
     protected void onSave() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 }
