@@ -127,6 +127,12 @@ Schema is managed with Flyway (`backend/src/main/resources/db/migration`); Hiber
 
 - **CI** (`.github/workflows/ci.yml`) — on push/PR to `main`: builds the backend with Maven and lints/builds the frontend.
 - **CD** (`.github/workflows/cd.yml`) — on push to `main`: builds and pushes the Docker image, then triggers a deployment webhook.
+- **SonarQube** (`.github/workflows/sonar-cloud-backend.yml`, `.github/workflows/sonar-cloud-frontend.yml`) — on push to `main` and on PRs: runs static analysis and coverage reporting (backend coverage via JaCoCo, `backend/pom.xml`) against separate SonarCloud projects for the backend and frontend.
+
+## Testing
+
+- **Backend** — JUnit 5 + Mockito unit/slice tests under `backend/src/test/java`. Run with `cd backend && ./mvnw test`; a JaCoCo report is generated at `backend/target/site/jacoco/index.html`.
+- **Frontend** — see `frontend/` for its own lint/build checks in CI.
 
 ## Acknowledgements
 
