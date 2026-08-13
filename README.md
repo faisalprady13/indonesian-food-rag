@@ -25,6 +25,16 @@ Each user brings their own OpenAI API key (stored encrypted), so there is no sha
 
 **Infra** — Docker (multi-stage build: frontend is built and copied into the backend jar as static resources — a single container serves both), GitHub Actions for CI (build + lint) and CD (build/push image, trigger deployment webhook).
 
+## Architecture
+
+**App architecture**
+
+![App Architecture](docu-assets/App%20Architecture.png)
+
+**RAG architecture**
+
+![RAG Architecture](docu-assets/RAG%20Architecture.png)
+
 ## Project structure
 
 ```
