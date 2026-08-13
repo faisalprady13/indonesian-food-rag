@@ -16,7 +16,6 @@ import org.myspring.backend.model.Conversation;
 import org.myspring.backend.model.User;
 import org.myspring.backend.repository.ConversationRepository;
 import org.myspring.backend.repository.UserRepository;
-import org.myspring.backend.service.rag.TitleGeneratorService;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -39,9 +38,6 @@ class ConversationServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private TitleGeneratorService titleGeneratorService;
-
     private ConversationService conversationService;
 
     private Conversation newConversation() {
@@ -55,8 +51,7 @@ class ConversationServiceTest {
     void setUp() {
         conversationService = new ConversationService(
                 conversationRepository,
-                userRepository,
-                titleGeneratorService
+                userRepository
         );
     }
 
@@ -155,27 +150,39 @@ class ConversationServiceTest {
         Conversation result = conversationService.getOrCreateConversation(1L, request, "What is rendang?");
 
         assertThat(result).isEqualTo(conversation);
-        verify(titleGeneratorService, never()).generate(any(), any());
         verify(conversationRepository, never()).save(any());
     }
 
     @Test
-    void getOrCreateConversation_createsNewConversation_whenConversationIdIsNull() {
+    void getOrCreateConversation_createsNewConversation_withPlaceholderTitle_whenConversationIdIsNull() {
         User user = User.builder().id(1L).build();
         ChatRequest request = new ChatRequest(null, "What is rendang?");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(titleGeneratorService.generate(1L, "What is rendang?")).thenReturn("Rendang Chat");
         when(conversationRepository.save(any(Conversation.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         Conversation result = conversationService.getOrCreateConversation(1L, request, "What is rendang?");
 
         assertThat(result.getUser()).isEqualTo(user);
-        assertThat(result.getTitle()).isEqualTo("Rendang Chat");
+        assertThat(result.getTitle()).isEqualTo("What is rendang?");
 
         ArgumentCaptor<Conversation> captor = ArgumentCaptor.forClass(Conversation.class);
         verify(conversationRepository).save(captor.capture());
         assertThat(captor.getValue().getUser()).isEqualTo(user);
+    }
+
+    @Test
+    void getOrCreateConversation_truncatesLongFirstMessage_forPlaceholderTitle() {
+        User user = User.builder().id(1L).build();
+        String longMessage = "a".repeat(80);
+        ChatRequest request = new ChatRequest(null, longMessage);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(conversationRepository.save(any(Conversation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Conversation result = conversationService.getOrCreateConversation(1L, request, longMessage);
+
+        assertThat(result.getTitle()).isEqualTo("a".repeat(50) + "…");
     }
 
     @Test
@@ -186,6 +193,23 @@ class ConversationServiceTest {
         assertThrows(ResponseStatusException.class,
                 () -> conversationService.getOrCreateConversation(999L, request, "What is rendang?"));
         verify(conversationRepository, never()).save(any());
+    }
+
+    @Test
+    void updateGeneratedTitle_updatesTitle_whenConversationExists() {
+        Conversation conversation = newConversation();
+        when(conversationRepository.findById(10L)).thenReturn(Optional.of(conversation));
+
+        conversationService.updateGeneratedTitle(10L, "Rendang Deep Dive");
+
+        assertThat(conversation.getTitle()).isEqualTo("Rendang Deep Dive");
+    }
+
+    @Test
+    void updateGeneratedTitle_doesNothing_whenConversationDoesNotExist() {
+        when(conversationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        conversationService.updateGeneratedTitle(999L, "Rendang Deep Dive");
     }
 
     @Test

@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +56,9 @@ class RecipeChatServiceTest {
     @Mock
     private ChatClientFactory chatClientFactory;
 
+    @Mock
+    private TitleGeneratorService titleGeneratorService;
+
     private static final String MODEL = "gpt-4o-mini";
 
     private RecipeChatService recipeChatService;
@@ -66,7 +70,8 @@ class RecipeChatServiceTest {
                 conversationService,
                 apiKeyEncryptionService,
                 messageService,
-                chatClientFactory
+                chatClientFactory,
+                titleGeneratorService
         );
         ReflectionTestUtils.setField(recipeChatService, "model", MODEL);
     }
@@ -165,5 +170,37 @@ class RecipeChatServiceTest {
 
         verify(apiKeyEncryptionService).decrypt("encrypted-nasi-key");
         verify(chatClientFactory).create("sk-nasi-key", MODEL);
+    }
+
+    @Test
+    void askQuestion_triggersAsyncTitleGeneration_whenConversationIsNew() {
+        Conversation conversation = new Conversation();
+        conversation.setId(11L);
+        ChatRequest request = new ChatRequest(null, "What is rendang?");
+
+        when(conversationService.getOrCreateConversation(1L, request, "What is rendang?"))
+                .thenReturn(conversation);
+        stubApiKey(1L, "encrypted-key", "sk-test-key");
+        stubChatClientCall("What is rendang?", "Rendang is a spicy Indonesian meat dish.");
+
+        recipeChatService.askQuestion(1L, request, "What is rendang?");
+
+        verify(titleGeneratorService).generateAndApply(1L, 11L, "What is rendang?");
+    }
+
+    @Test
+    void askQuestion_skipsAsyncTitleGeneration_whenConversationAlreadyExists() {
+        Conversation conversation = new Conversation();
+        conversation.setId(42L);
+        ChatRequest request = new ChatRequest(42L, "How do I make soto?");
+
+        when(conversationService.getOrCreateConversation(2L, request, "How do I make soto?"))
+                .thenReturn(conversation);
+        stubApiKey(2L, "encrypted-key-2", "sk-test-key-2");
+        stubChatClientCall("How do I make soto?", "Soto recipe details.");
+
+        recipeChatService.askQuestion(2L, request, "How do I make soto?");
+
+        verify(titleGeneratorService, never()).generateAndApply(any(), any(), any());
     }
 }

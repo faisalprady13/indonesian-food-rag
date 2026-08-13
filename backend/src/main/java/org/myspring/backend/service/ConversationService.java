@@ -9,7 +9,6 @@ import org.myspring.backend.model.Conversation;
 import org.myspring.backend.model.User;
 import org.myspring.backend.repository.ConversationRepository;
 import org.myspring.backend.repository.UserRepository;
-import org.myspring.backend.service.rag.TitleGeneratorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +22,6 @@ import java.util.List;
 public class ConversationService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
-    private final TitleGeneratorService titleGeneratorService;
 
     public List<ConversationResponse> getAllConversationsByUserId(Long userId) {
         User user = userRepository.findById(userId)
@@ -60,6 +58,7 @@ public class ConversationService {
                 );
     }
 
+    @Transactional
     public Conversation getOrCreateConversation(Long userId, ChatRequest request, String userQuestion) {
         if (request.conversationId() != null) {
             return getConversationIdAndByUserId(
@@ -78,9 +77,25 @@ public class ConversationService {
 
         Conversation conversation = new Conversation();
         conversation.setUser(user);
-        conversation.setTitle(titleGeneratorService.generate(userId, userQuestion));
+        conversation.setTitle(placeholderTitle(userQuestion));
 
         return conversationRepository.save(conversation);
+    }
+
+    @Transactional
+    public void updateGeneratedTitle(Long conversationId, String title) {
+        conversationRepository.findById(conversationId)
+                .ifPresent(conversation -> conversation.setTitle(title));
+    }
+
+    private static final int PLACEHOLDER_TITLE_MAX_LENGTH = 50;
+
+    private String placeholderTitle(String userQuestion) {
+        String trimmed = userQuestion.strip();
+
+        return trimmed.length() > PLACEHOLDER_TITLE_MAX_LENGTH
+                ? trimmed.substring(0, PLACEHOLDER_TITLE_MAX_LENGTH) + "…"
+                : trimmed;
     }
 
     @Transactional

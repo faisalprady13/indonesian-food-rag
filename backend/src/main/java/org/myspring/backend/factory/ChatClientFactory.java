@@ -1,5 +1,6 @@
 package org.myspring.backend.factory;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.tool.RecipeTools;
 import org.myspring.backend.tool.UserFavoriteTools;
@@ -10,6 +11,9 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.stereotype.Component;
 import org.springframework.ai.openai.OpenAiChatOptions;
 
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+
 @Component
 @RequiredArgsConstructor
 public class ChatClientFactory {
@@ -18,13 +22,25 @@ public class ChatClientFactory {
     private final UserFavoriteTools userFavoriteTools;
     private final ChatMemory chatMemory;
 
+    // Keyed by "apiKey|model" so the underlying HTTP client (and its connection pool) to
+    // OpenAI is reused across requests instead of rebuilt on every call. Bounded and
+    // idle-expiring so a rotated API key naturally falls out without needing invalidation.
+    private final ConcurrentMap<String, OpenAiChatModel> chatModelCache = Caffeine.newBuilder()
+            .maximumSize(200)
+            .expireAfterAccess(30, TimeUnit.MINUTES)
+            .<String, OpenAiChatModel>build()
+            .asMap();
+
     public OpenAiChatModel createChatModel(String apiKey, String model) {
-        return OpenAiChatModel.builder()
-                .options(OpenAiChatOptions.builder()
-                        .apiKey(apiKey)
-                        .model(model)
-                        .build())
-                .build();
+        return chatModelCache.computeIfAbsent(
+                apiKey + "|" + model,
+                key -> OpenAiChatModel.builder()
+                        .options(OpenAiChatOptions.builder()
+                                .apiKey(apiKey)
+                                .model(model)
+                                .build())
+                        .build()
+        );
     }
 
     public ChatClient.Builder createChatClientBuilder(String apiKey, String model) {

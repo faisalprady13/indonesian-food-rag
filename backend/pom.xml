@@ -157,6 +157,10 @@
             <artifactId>pgvector</artifactId>
             <version>0.1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

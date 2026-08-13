@@ -12,7 +12,6 @@ import org.myspring.backend.service.UserSettingService;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
@@ -26,11 +25,11 @@ public class RecipeChatService {
     private final ApiKeyEncryptionService apiKeyEncryptionService;
     private final MessageService messageService;
     private final ChatClientFactory chatClientFactory;
+    private final TitleGeneratorService titleGeneratorService;
 
     @Value("${spring.ai.openai.chat.model}")
     private String model;
 
-    @Transactional
     public ChatResponse askQuestion(
             Long userId,
             ChatRequest request,
@@ -42,6 +41,10 @@ public class RecipeChatService {
                 request,
                 userQuestion
         );
+
+        if (request.conversationId() == null) {
+            titleGeneratorService.generateAndApply(userId, conversation.getId(), userQuestion);
+        }
 
         String apiKey = apiKeyEncryptionService.decrypt(
                 userSettingService
