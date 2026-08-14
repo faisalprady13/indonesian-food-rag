@@ -21,7 +21,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         Map<String, String> validationErrors = new HashMap<>();
 
-        ex.getBindingResult().getFieldErrors().forEach((fieldError) -> validationErrors.put(fieldError.getField(), fieldError.getDefaultMessage()));
+        ex.getBindingResult().getFieldErrors().forEach(fieldError -> validationErrors.put(fieldError.getField(), fieldError.getDefaultMessage()));
 
         return new ResponseEntity<>(validationErrors, HttpStatus.BAD_REQUEST);
     }
