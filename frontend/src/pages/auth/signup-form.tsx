@@ -35,7 +35,7 @@ export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
@@ -51,14 +51,14 @@ export function SignupForm({ onLoginSuccess, ...props }: SignupFormProps) {
       await onLoginSuccess();
       navigate('/');
     } catch (err) {
-      if (
-        axios.isAxiosError(err) &&
-        err.response?.status === 409 &&
-        typeof err.response.data === 'string'
-      ) {
-        setError(err.response.data);
+      const response = axios.isAxiosError(err) ? err.response : undefined;
+
+      if (response?.status === 409 && typeof response.data === 'string') {
+        setError(response.data);
+      } else if (response?.status === 400 && response.data && typeof response.data === 'object') {
+        setError(Object.values(response.data as Record<string, string>).join(' '));
       } else {
-        setError('Could not create your account. Try a different username.');
+        setError('Could not create your account. Please try again.');
       }
     } finally {
       setSubmitting(false);

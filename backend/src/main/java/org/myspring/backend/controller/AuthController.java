@@ -1,5 +1,6 @@
 package org.myspring.backend.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.myspring.backend.dto.request.LoginRequest;
 import org.myspring.backend.dto.request.RegisterRequest;
@@ -22,7 +23,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest user) {
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest user) {
         return ResponseEntity.ok(
                 UserResponse.fromUser(service.register(user))
         );
