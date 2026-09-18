@@ -1,4 +1,4 @@
-# Food RAG
+# Indodish RAG
 
 A full-stack RAG (retrieval-augmented generation) chatbot for exploring food recipes. Users chat in natural language, and the assistant retrieves relevant recipes from a Postgres/pgvector store, answers questions about them, and can search, look up, and manage favorites on the user's behalf via tool calling.
 
