@@ -1,0 +1,151 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+:root {
+  font-family: "Inter Variable", sans-serif;
+  color-scheme: dark;
+  --bg: #28231f;
+  --card: #342d27;
+  --border: #51463d;
+  --text: #f7f1e8;
+  --muted: #b7aaa0;
+  --primary: #c86f4b;
+  --primary-hover: #d4815c;
+}
+
+:root.light {
+  color-scheme: light;
+  --bg: #faf7f1;
+  --card: #fffdf9;
+  --border: #e3dcd3;
+  --text: #382f29;
+  --muted: #776b62;
+  --primary: #b75e3d;
+  --primary-hover: #a75033;
+}
+
+@theme inline {
+  --font-sans: "Inter Variable", sans-serif;
+  --color-background: var(--bg);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-foreground: var(--text);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply m-0 min-h-screen bg-background text-foreground;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+
+  button,
+  a {
+    @apply cursor-pointer;
+  }
+
+  a {
+    @apply text-primary no-underline;
+  }
+
+  input,
+  select {
+    @apply w-full rounded-lg border border-border bg-background px-3 py-2.5 text-foreground outline-none;
+  }
+
+  input:focus {
+    @apply border-primary;
+  }
+}
+
+@layer components {
+  .center { @apply grid min-h-screen place-items-center; }
+  .spinner { @apply h-7 w-7 animate-spin rounded-full border-[3px] border-border border-t-primary; }
+  .navbar { @apply fixed top-0 z-10 grid h-[76px] w-full grid-cols-[1fr_auto_1fr] items-center border-b border-border bg-background/95 px-6; }
+  .brand { @apply justify-self-center; }
+  .brand img { @apply block h-12; }
+  .user-menu { @apply flex items-center justify-self-end gap-2; }
+  .user-button { @apply flex items-center gap-2 rounded-full border-0 bg-transparent px-2 py-1 text-foreground; }
+  .user-button:hover, .icon-button:hover { @apply bg-card; }
+  .avatar { @apply h-8 w-8 rounded-full object-cover; }
+  .fallback { @apply grid place-items-center bg-primary text-white; }
+  .icon-button { @apply inline-grid place-items-center rounded-lg border-0 bg-transparent p-2 text-foreground; }
+  .icon-button.small { @apply p-1; }
+  .danger { @apply text-red-400; }
+  .page { @apply mx-auto max-w-[1000px] px-6 pb-9 pt-[124px]; }
+  .with-sidebar { @apply ml-[270px]; }
+  .conversation-sidebar { @apply fixed bottom-0 top-[76px] w-[250px] overflow-auto border-r border-border p-5; }
+  .full { @apply w-full; }
+  .conversation-row { @apply flex items-center gap-1 border-b border-border px-1.5 py-2.5 text-sm; }
+  .conversation-row a { @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-foreground; }
+  .conversation-row.active { @apply rounded-lg bg-card; }
+  .card { @apply rounded-xl border border-border bg-card p-5; }
+  .auth-shell { @apply grid min-h-screen place-items-center p-6; }
+  .auth-card { @apply w-full max-w-[400px] text-center; }
+  .logo { @apply h-[52px]; }
+  .auth-card form, .profile { @apply flex flex-col gap-4 text-left; }
+  .auth-card h1 { @apply mb-1 mt-3 text-[21px]; }
+  .muted { @apply text-muted; }
+  .error { @apply text-sm text-red-400; }
+  label { @apply flex flex-col gap-1.5 text-sm font-semibold; }
+  button.primary, .secondary { @apply rounded-lg border-0 bg-primary px-3.5 py-2.5 font-semibold text-white; }
+  .primary:hover { @apply bg-[var(--primary-hover)]; }
+  .secondary { @apply bg-border text-foreground; }
+  .home { @apply flex flex-col gap-5; }
+  .search-box { @apply relative mx-auto w-full max-w-[500px]; }
+  .search-box input { @apply pl-[38px] pr-[35px]; }
+  .search-icon { @apply absolute left-3 top-3 text-muted; }
+  .clear { @apply absolute right-2 top-1.5 border-0 bg-transparent p-1.5 text-muted; }
+  .suggestions { @apply absolute top-11 z-[3] w-full overflow-hidden rounded-lg border border-border bg-card; }
+  .suggestions button { @apply block w-full border-0 bg-transparent px-3.5 py-2.5 text-left text-foreground; }
+  .suggestions button:hover { @apply bg-border; }
+  .tabs { @apply flex gap-1 border-b border-border; }
+  .tabs button { @apply border-0 bg-transparent px-3.5 py-2.5 text-muted; }
+  .tabs button.selected { @apply border-b-2 border-primary text-primary; }
+  .recipe-grid { @apply grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3.5; }
+  .recipe-card { @apply cursor-pointer transition-transform duration-150; }
+  .recipe-card:hover { @apply -translate-y-0.5; }
+  .recipe-title { @apply flex items-start justify-between gap-2; }
+  .recipe-title h2 { @apply m-0 text-[17px]; }
+  .recipe-card p { @apply min-h-[42px] text-sm; }
+  .pagination { @apply flex items-center justify-center gap-3; }
+  .pagination select { @apply w-auto px-2 py-1.5; }
+  .empty { @apply p-9 text-center; }
+  .profile { @apply mx-auto max-w-[620px]; }
+  .profile h1, .profile h2 { @apply m-0; }
+  .profile hr { @apply w-full border-0 border-t border-border; }
+  .theme-row { @apply flex gap-2; }
+  .theme-row button { @apply flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-foreground; }
+  .theme-row button.selected { @apply border-primary text-primary; }
+  .chat-page { @apply mx-auto flex min-h-[calc(100vh-150px)] max-w-[760px] flex-col; }
+  .messages { @apply flex flex-1 flex-col gap-3; }
+  .message { @apply max-w-[80%] self-start rounded-xl bg-card px-4 py-3; }
+  .message.user { @apply self-end bg-primary text-white; }
+  .message p { @apply m-1.5 whitespace-pre-wrap; }
+  .chat-input { @apply sticky bottom-5 mt-5 flex gap-2; }
+  .chat-input .icon-button { @apply basis-11; }
+  .notice { @apply m-auto; }
+  .modal-backdrop { @apply fixed inset-0 z-20 grid place-items-center bg-black/60 p-5; }
+  .modal { @apply relative max-h-[85vh] w-full max-w-[650px] overflow-auto; }
+  .close { @apply absolute right-3 top-3; }
+  .recipe-steps { @apply whitespace-pre-line leading-relaxed; }
+}
+
+@media (max-width: 700px) {
+  .username { @apply hidden; }
+  .page { @apply px-4; }
+  .conversation-sidebar { @apply hidden; }
+  .with-sidebar { @apply ml-0; }
+  .recipe-grid { @apply grid-cols-1; }
+  .navbar { @apply px-3.5; }
+}
